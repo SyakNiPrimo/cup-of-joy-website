@@ -133,39 +133,54 @@
     /* ── HERO ── */
     .hero {
       background: var(--yellow);
-      min-height: 88vh;
+      min-height: calc(100vh - 88px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .hero-left {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
-      text-align: center;
-      padding: 4rem 1.5rem;
+      padding: 4rem 3rem 4rem 5vw;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-left::before {
+      content: '';
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      background: rgba(61,32,0,.06);
+      border-radius: 50%;
+      bottom: -80px;
+      left: -80px;
+      z-index: 0;
+    }
+
+    .hero-right {
       position: relative;
       overflow: hidden;
     }
 
-    .hero::before {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: rgba(255,255,255,.15);
-      border-radius: 50%;
-      top: -100px;
-      right: -120px;
+    .hero-right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
     }
 
-    .hero::after {
+    .hero-right::after {
       content: '';
       position: absolute;
-      width: 300px;
-      height: 300px;
-      background: rgba(61,32,0,.06);
-      border-radius: 50%;
-      bottom: -60px;
-      left: -60px;
+      inset: 0;
+      background: linear-gradient(to right, var(--yellow) 0%, transparent 18%);
     }
 
-    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .hero-content { position: relative; z-index: 1; }
 
     .hero-badge {
       display: inline-block;
@@ -181,7 +196,7 @@
     }
 
     .hero h1 {
-      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-size: clamp(2.4rem, 4.5vw, 4rem);
       font-weight: 900;
       color: var(--brown);
       line-height: 1.1;
@@ -189,16 +204,16 @@
     }
 
     .hero p {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: var(--brown);
       opacity: .85;
-      max-width: 500px;
-      margin: 0 auto 2rem;
+      max-width: 440px;
+      margin-bottom: 2rem;
       font-weight: 600;
       line-height: 1.6;
     }
 
-    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
 
     .cta-primary {
       background: var(--brown);
@@ -479,6 +494,12 @@
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .hamburger { display: flex; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 3rem 1.5rem 2rem; }
+      .hero-left::before { display: none; }
+      .hero-right { height: 260px; }
+      .hero-right::after { background: linear-gradient(to bottom, var(--yellow) 0%, transparent 30%); }
+      .hero h1 { font-size: 2.2rem; }
       .about-teaser-inner { grid-template-columns: 1fr; gap: 2rem; }
       .about-teaser img { height: 240px; }
       section { padding: 3.5rem 1.25rem; }
@@ -514,14 +535,19 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">☕ Now Serving Joymates</div>
-    <h1>Where Every Sip<br />Brings Joy</h1>
-    <p>Maging parte ng aming masayang komunidad! Welcome, Joymate — your favorite neighborhood cafe in Rosario, La Union is here to brighten your day, one cup at a time.</p>
-    <div class="hero-ctas">
-      <a href="menu.html" class="cta-primary">See Our Menu 📋</a>
-      <a href="https://www.facebook.com/profile.php?id=61579999162949" target="_blank" rel="noopener" class="cta-secondary">Message Us on Facebook 💬</a>
+  <div class="hero-left">
+    <div class="hero-content">
+      <div class="hero-badge">☕ Now Serving Joymates</div>
+      <h1>Where Every Sip<br />Brings Joy</h1>
+      <p>Maging parte ng aming masayang komunidad! Welcome, Joymate — your favorite neighborhood cafe in Rosario, La Union is here to brighten your day, one cup at a time.</p>
+      <div class="hero-ctas">
+        <a href="menu.html" class="cta-primary">See Our Menu 📋</a>
+        <a href="https://www.facebook.com/profile.php?id=61579999162949" target="_blank" rel="noopener" class="cta-secondary">Message Us on Facebook 💬</a>
+      </div>
     </div>
+  </div>
+  <div class="hero-right">
+    <img src="images/720553035_122136762536999972_2601721927657449811_n.jpg" alt="Cup of Joy stall" />
   </div>
 </section>
 

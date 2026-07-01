@@ -34,14 +34,60 @@
       left: 0;
       right: 0;
       z-index: 100;
+      background: transparent;
+      border-bottom: 1px solid transparent;
+      padding: 0 3rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      height: 80px;
+      transition: background .35s ease, border-color .35s ease, box-shadow .35s ease;
+    }
+
+    nav.scrolled {
       background: rgba(255,255,255,.97);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid rgba(61,32,0,.08);
-      padding: 0 3rem;
+      box-shadow: 0 2px 16px rgba(61,32,0,.08);
+    }
+
+    /* Link colors flip between white (transparent) and brown (scrolled) */
+    nav .nav-links a { color: rgba(255,255,255,.9); }
+    nav.scrolled .nav-links a { color: var(--brown); }
+    nav .nav-links a:hover { color: #fff; }
+    nav.scrolled .nav-links a:hover { color: var(--brown); }
+
+    /* Logo: invert to white when transparent, normal when scrolled */
+    .nav-logo img { filter: brightness(0) invert(1); transition: filter .35s; }
+    nav.scrolled .nav-logo img { filter: none; }
+
+    /* Order Now button */
+    nav .btn-order {
+      background: rgba(255,255,255,.15) !important;
+      border: 1.5px solid rgba(255,255,255,.7) !important;
+      color: #fff !important;
+      transition: background .35s, border-color .35s, color .35s !important;
+    }
+    nav.scrolled .btn-order {
+      background: var(--brown) !important;
+      border-color: var(--brown) !important;
+      color: var(--yellow) !important;
+    }
+
+    /* Hamburger lines: white when transparent */
+    nav .hamburger span { background: #fff; transition: background .35s; }
+    nav.scrolled .hamburger span { background: var(--brown); }
+
+    .nav-links-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .nav-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 80px;
+      gap: 1rem;
+      justify-content: flex-end;
     }
 
     .nav-logo img { height: 72px; display: block; }
@@ -556,16 +602,20 @@
   <a class="nav-logo" href="index.html">
     <img src="Logo.png" alt="Cup of Joy Logo" />
   </a>
-  <ul class="nav-links">
-    <li><a href="index.html" class="active">Home</a></li>
-    <li><a href="menu.html">Menu</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="contact.html">Contact</a></li>
-    <li><a href="menu.html" class="btn-order">Order Now ☕</a></li>
-  </ul>
-  <button class="hamburger" id="hamburger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <div class="nav-links-wrap">
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="menu.html">Menu</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </div>
+  <div class="nav-actions">
+    <a href="menu.html" class="btn-order">Order Now</a>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
@@ -707,15 +757,22 @@
 </footer>
 
 <script>
+  const nav = document.querySelector('nav');
   const hamburger = document.getElementById('hamburger');
   const mobileMenu = document.getElementById('mobileMenu');
+
+  // Transparent nav: add .scrolled once user scrolls past 60px
+  function updateNav() {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
 
   hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('open');
     mobileMenu.classList.toggle('open');
   });
 
-  // Close mobile menu on link click
   mobileMenu.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       hamburger.classList.remove('open');

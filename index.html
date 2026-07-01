@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cup of Joy — Where Every Sip Brings Joy</title>
+  <link rel="icon" type="image/png" href="cup_of_Joy_Logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow: #FADA2A;
+      --brown: #3D2000;
+      --cream: #FFFDF0;
+      --brown-light: #6b3a00;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--cream);
+      color: var(--brown);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(61,32,0,.10);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+
+    .nav-logo img { height: 48px; display: block; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--brown);
+      font-size: 1rem;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--brown-light); }
+
+    .nav-links a.active { color: var(--yellow); -webkit-text-stroke: .5px var(--brown); }
+
+    .btn-order {
+      background: var(--brown);
+      color: var(--yellow) !important;
+      padding: .5rem 1.25rem;
+      border-radius: 50px;
+      font-weight: 800 !important;
+      font-size: .95rem !important;
+      transition: background .2s, transform .15s !important;
+    }
+
+    .btn-order:hover { background: var(--brown-light) !important; transform: scale(1.04); }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 26px;
+      height: 3px;
+      background: var(--brown);
+      border-radius: 3px;
+      transition: all .3s;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      background: #fff;
+      position: absolute;
+      top: 68px;
+      left: 0;
+      width: 100%;
+      padding: 1rem 1.5rem 1.5rem;
+      box-shadow: 0 8px 24px rgba(61,32,0,.12);
+      gap: .75rem;
+      z-index: 99;
+    }
+
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--brown);
+      font-size: 1.1rem;
+      padding: .4rem 0;
+      border-bottom: 1px solid #f0e8d0;
+    }
+    .mobile-menu .btn-order {
+      text-align: center;
+      background: var(--brown);
+      color: var(--yellow) !important;
+      padding: .6rem 1.25rem;
+      border-radius: 50px;
+      margin-top: .25rem;
+      border-bottom: none !important;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--yellow);
+      min-height: 88vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: rgba(255,255,255,.15);
+      border-radius: 50%;
+      top: -100px;
+      right: -120px;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: rgba(61,32,0,.06);
+      border-radius: 50%;
+      bottom: -60px;
+      left: -60px;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--brown);
+      color: var(--yellow);
+      font-size: .85rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .35rem 1rem;
+      border-radius: 50px;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      color: var(--brown);
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--brown);
+      opacity: .85;
+      max-width: 500px;
+      margin: 0 auto 2rem;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+
+    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    .cta-primary {
+      background: var(--brown);
+      color: var(--yellow);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: .8rem 2rem;
+      border-radius: 50px;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(61,32,0,.25);
+    }
+
+    .cta-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(61,32,0,.3); }
+
+    .cta-secondary {
+      background: transparent;
+      border: 2.5px solid var(--brown);
+      color: var(--brown);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: .8rem 2rem;
+      border-radius: 50px;
+      transition: background .2s, transform .2s;
+    }
+
+    .cta-secondary:hover { background: rgba(61,32,0,.08); transform: translateY(-3px); }
+
+    /* ── SECTION STYLES ── */
+    section { padding: 5rem 1.5rem; }
+
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      display: inline-block;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brown);
+      opacity: .5;
+      margin-bottom: .5rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      color: var(--brown);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--brown);
+      opacity: .7;
+      max-width: 500px;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    /* ── FEATURED CARDS ── */
+    .featured { background: var(--cream); }
+
+    .featured-header { text-align: center; margin-bottom: 3rem; }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(61,32,0,.08);
+      transition: transform .25s, box-shadow .25s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+    }
+
+    .card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(61,32,0,.16); }
+
+    .card-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-body { padding: 1.25rem 1.5rem 1.5rem; }
+
+    .card-tag {
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      background: var(--brown);
+      padding: .2rem .65rem;
+      border-radius: 50px;
+      display: inline-block;
+      margin-bottom: .6rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--brown);
+      margin-bottom: .4rem;
+    }
+
+    .card-desc {
+      font-size: .9rem;
+      color: var(--brown);
+      opacity: .7;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      margin-top: .9rem;
+      font-size: .9rem;
+      font-weight: 800;
+      color: var(--brown);
+      text-decoration: none;
+    }
+
+    .card-cta::after { content: '→'; transition: transform .2s; }
+    .card:hover .card-cta::after { transform: translateX(4px); }
+
+    /* ── ABOUT TEASER ── */
+    .about-teaser {
+      background: var(--brown);
+      color: var(--cream);
+    }
+
+    .about-teaser-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .about-teaser img {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.3);
+    }
+
+    .about-text .section-label { color: var(--yellow); opacity: 1; }
+    .about-text .section-title { color: var(--yellow); }
+    .about-text p {
+      color: var(--cream);
+      opacity: .85;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-outline-yellow {
+      display: inline-block;
+      border: 2.5px solid var(--yellow);
+      color: var(--yellow);
+      text-decoration: none;
+      font-weight: 800;
+      padding: .7rem 1.75rem;
+      border-radius: 50px;
+      transition: background .2s, color .2s, transform .2s;
+    }
+
+    .btn-outline-yellow:hover {
+      background: var(--yellow);
+      color: var(--brown);
+      transform: translateY(-2px);
+    }
+
+    /* ── JOYMATES ── */
+    .joymates { background: var(--yellow); text-align: center; }
+
+    .joymates-emoji { font-size: 3rem; margin-bottom: 1rem; }
+
+    .joymates .section-title { font-size: clamp(2rem, 5vw, 3rem); }
+
+    .joymates .section-subtitle {
+      margin: 0 auto 2rem;
+      max-width: 560px;
+      color: var(--brown);
+      opacity: .85;
+    }
+
+    .joymates-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .joymates-badges span {
+      background: var(--brown);
+      color: var(--yellow);
+      font-weight: 800;
+      font-size: .9rem;
+      padding: .45rem 1.1rem;
+      border-radius: 50px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--brown);
+      color: var(--cream);
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+    }
+
+    .footer-inner { max-width: 700px; margin: 0 auto; }
+
+    footer img { height: 56px; margin-bottom: 1.25rem; }
+
+    footer p {
+      font-size: .95rem;
+      opacity: .75;
+      line-height: 1.7;
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin: 1.25rem 0;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--yellow);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .95rem;
+      transition: opacity .2s;
+    }
+
+    .footer-links a:hover { opacity: .75; }
+
+    .fb-link {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--yellow);
+      color: var(--brown);
+      font-weight: 800;
+      text-decoration: none;
+      padding: .6rem 1.5rem;
+      border-radius: 50px;
+      margin: 1rem 0;
+      transition: transform .2s, opacity .2s;
+    }
+
+    .fb-link:hover { transform: scale(1.04); opacity: .9; }
+
+    footer hr { border: none; border-top: 1px solid rgba(255,253,240,.15); margin: 1.5rem 0; }
+
+    footer small { font-size: .8rem; opacity: .5; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .about-teaser-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .about-teaser img { height: 240px; }
+      section { padding: 3.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="Logo.png" alt="Cup of Joy Logo" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="menu.html" class="btn-order">Order Now ☕</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Home</a>
+  <a href="menu.html">Menu</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="menu.html" class="btn-order">Order Now ☕</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">☕ Now Serving Joymates</div>
+    <h1>Where Every Sip<br />Brings Joy</h1>
+    <p>Maging parte ng aming masayang komunidad! Welcome, Joymate — your favorite neighborhood cafe in Rosario, La Union is here to brighten your day, one cup at a time.</p>
+    <div class="hero-ctas">
+      <a href="menu.html" class="cta-primary">See Our Menu 📋</a>
+      <a href="https://www.facebook.com/profile.php?id=61579999162949" target="_blank" rel="noopener" class="cta-secondary">Message Us on Facebook 💬</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED CATEGORIES -->
+<section class="featured">
+  <div class="section-inner">
+    <div class="featured-header">
+      <div class="section-label">What We Serve</div>
+      <h2 class="section-title">Something for Every Joymate ✨</h2>
+      <p class="section-subtitle" style="margin:0 auto;">From your morning kape to your paboritong merienda — we've got you covered!</p>
+    </div>
+    <div class="cards-grid">
+      <a href="menu.html#coffee" class="card">
+        <img
+          class="card-img"
+          src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80"
+          alt="Coffee"
+          loading="lazy"
+        />
+        <div class="card-body">
+          <span class="card-tag">Hot & Iced</span>
+          <div class="card-title">Coffee ☕</div>
+          <p class="card-desc">Americano, Latte, Biscoff, Dirty Matcha — available in 16oz and 22oz. Your daily kape fix, elevated!</p>
+          <span class="card-cta">View Coffee Menu</span>
+        </div>
+      </a>
+      <a href="menu.html#milkbased" class="card">
+        <img
+          class="card-img"
+          src="https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=600&q=80"
+          alt="Milk Based Drinks"
+          loading="lazy"
+        />
+        <div class="card-body">
+          <span class="card-tag">Non-Coffee</span>
+          <div class="card-title">Milk Based 🍵</div>
+          <p class="card-desc">Matcha, fruity milky drinks, Horchata, and Choco Oreo — masarap at refreshing para sa lahat!</p>
+          <span class="card-cta">View Milk Based Menu</span>
+        </div>
+      </a>
+      <a href="menu.html#silog" class="card">
+        <img
+          class="card-img"
+          src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80"
+          alt="Silog Meals"
+          loading="lazy"
+        />
+        <div class="card-body">
+          <span class="card-tag">Rice Meals</span>
+          <div class="card-title">Silog Meals 🍳</div>
+          <p class="card-desc">Tapsilog, Bangsilog, Spamsilog, at marami pa! Masustansyang almusal na pang-Joymate only — ₱80 each.</p>
+          <span class="card-cta">View Silog Menu</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT TEASER -->
+<section class="about-teaser">
+  <div class="about-teaser-inner">
+    <img
+      src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=700&q=80"
+      alt="Cozy cafe atmosphere"
+      loading="lazy"
+    />
+    <div class="about-text">
+      <div class="section-label">Our Story</div>
+      <h2 class="section-title">More Than Just a Cafe 💛</h2>
+      <p>Cup of Joy is your community's happy place at Rosario Town Plaza, Poblacion East — a warm, welcoming spot where neighbors become friends and every cup tells a story. Born from a love of great drinks and an even greater love for community, we're here to make every visit feel like home.</p>
+      <p>Whether you're grabbing your morning Americano, hanging out with barkada, or discovering your new favorite drink — you're always welcome here, Joymate!</p>
+      <a href="about.html" class="btn-outline-yellow">Read Our Story</a>
+    </div>
+  </div>
+</section>
+
+<!-- JOYMATES SECTION -->
+<section class="joymates">
+  <div class="section-inner">
+    <div class="joymates-emoji">🎉</div>
+    <h2 class="section-title">Join the Joymates Community!</h2>
+    <p class="section-subtitle">Kami ay hindi lang isang cafe — we're a family! Our Joymates are the heart of everything we do. Sama-sama tayong nagdadala ng joy, one cup at a time.</p>
+    <div class="joymates-badges">
+      <span>☕ Coffee Lovers</span>
+      <span>🍵 Matcha Heads</span>
+      <span>🍳 Silog Gang</span>
+      <span>🥤 Soda Squad</span>
+      <span>🌟 Good Vibes Only</span>
+      <span>📍 Rosario, La Union Proud</span>
+    </div>
+    <a href="https://www.facebook.com/profile.php?id=61579999162949" target="_blank" rel="noopener" class="cta-primary" style="font-size:.95rem;">
+      Connect with Us on Facebook 💬
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <img src="Logo.png" alt="Cup of Joy" style="filter:brightness(0) invert(1);" />
+    <p>📍 Rosario Town Plaza, Poblacion East, Rosario, La Union</p>
+    <p>🛵 For deliveries, message us on Facebook!</p>
+    <a href="https://www.facebook.com/profile.php?id=61579999162949" target="_blank" rel="noopener" class="fb-link">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      Message us on Facebook
+    </a>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <hr />
+    <small>© 2024 Cup of Joy. Crafted with ☕ and 💛 in Rosario, La Union, Philippines.</small>
+  </div>
+</footer>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+
+  // Close mobile menu on link click
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

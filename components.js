@@ -64,6 +64,76 @@ document.body.insertAdjacentHTML('beforeend', `
 </footer>
 `);
 
+/* ── Messenger Float Button ── */
+document.body.insertAdjacentHTML('beforeend', `
+<style>
+  .messenger-float {
+    position: fixed;
+    bottom: 1.75rem;
+    right: 1.75rem;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+  }
+  .messenger-tooltip {
+    background: var(--brown);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: .82rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: .45rem .9rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 14px rgba(61,32,0,.28);
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity .22s ease, transform .22s ease;
+    pointer-events: none;
+  }
+  .messenger-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--brown);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 18px rgba(61,32,0,.35);
+    transition: background .2s, transform .2s, box-shadow .2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .messenger-float:hover .messenger-tooltip {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .messenger-float:hover .messenger-btn {
+    background: #6b3a00;
+    transform: scale(1.07);
+    box-shadow: 0 8px 24px rgba(61,32,0,.4);
+  }
+  @media (max-width: 768px) {
+    .messenger-float { bottom: 1.25rem; right: 1.25rem; }
+    .messenger-tooltip { display: none; }
+    .messenger-btn { width: 50px; height: 50px; }
+  }
+</style>
+<div class="messenger-float">
+  <span class="messenger-tooltip">Chat with us for orders!</span>
+  <a class="messenger-btn"
+     href="https://m.me/CupofJoyRosarioLaUnion"
+     target="_blank"
+     rel="noopener"
+     aria-label="Chat with us on Messenger">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 1C5.925 1 1 5.637 1 11.375c0 3.115 1.447 5.899 3.738 7.832V22l3.489-1.914A11.86 11.86 0 0 0 12 20.75c6.075 0 11-4.637 11-10.375C23 5.637 18.075 1 12 1Z" fill="white"/>
+      <path d="m5.5 14.5 3.728-3.955 2.272 2.272 3.5-2.272 3.5 3.955-3.728-4.273-2.272 2.272-2.272-2.272L5.5 14.5Z" fill="#3D2000"/>
+    </svg>
+  </a>
+</div>
+`);
+
 /* ── Scroll: transparent → solid ── */
 const nav = document.getElementById('mainNav');
 const heroPage = document.body.dataset.hero === 'true';

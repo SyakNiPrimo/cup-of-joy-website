@@ -792,9 +792,9 @@ const menuMain = document.getElementById('menuMain');
 const cardState = {}; // per-card selected size/variant
 
 // Custom Mix uses the same size/variant price grid as the individual flavors.
-const customMixState = { size: '16', variant: 'Regular' };
-const CUSTOM_MIX_PRICES = { 16: { Regular: 50, Yogurt: 60 }, 22: { Regular: 70, Yogurt: 80 } };
-function customMixPrice() { return CUSTOM_MIX_PRICES[customMixState.size][customMixState.variant]; }
+const customMixState = { size: '16' };
+const CUSTOM_MIX_PRICES = { 16: 60, 22: 80 };
+function customMixPrice() { return CUSTOM_MIX_PRICES[customMixState.size]; }
 
 CATEGORIES.forEach((cat, ci) => {
   const pill = document.createElement('button');
@@ -825,10 +825,6 @@ CATEGORIES.forEach((cat, ci) => {
         <button class="toggle-btn active" type="button" data-size="16">16oz</button>
         <button class="toggle-btn" type="button" data-size="22">22oz</button>
       </div>
-      <div class="toggle-group" id="customMixVariantToggle">
-        <button class="toggle-btn active" type="button" data-variant="Regular">Regular</button>
-        <button class="toggle-btn" type="button" data-variant="Yogurt">Yogurt</button>
-      </div>
       <div style="font-size:.7rem; opacity:.6; font-weight:700;">Pick any 2 flavors</div>
       <button class="add-btn" type="button">+ Add</button>`;
     const customMixPriceEl = card.querySelector('.price');
@@ -836,14 +832,6 @@ CATEGORIES.forEach((cat, ci) => {
       b.addEventListener('click', () => {
         customMixState.size = b.dataset.size;
         card.querySelector('#customMixSizeToggle').querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        customMixPriceEl.textContent = money(customMixPrice());
-      });
-    });
-    card.querySelector('#customMixVariantToggle').querySelectorAll('.toggle-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        customMixState.variant = b.dataset.variant;
-        card.querySelector('#customMixVariantToggle').querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
         customMixPriceEl.textContent = money(customMixPrice());
       });
@@ -1193,7 +1181,7 @@ document.getElementById('addCustomMixBtn').addEventListener('click', () => {
     name: `Custom Mix: ${selectedFlavors[0]} + ${selectedFlavors[1]}`,
     category: 'Fruit Soda',
     size: customMixState.size + 'oz',
-    variant: customMixState.variant,
+    variant: null,
     unitPrice: customMixPrice(),
     addons: [],
     notes: ''

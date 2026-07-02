@@ -524,12 +524,22 @@ async function startScanner() {
   try {
     await html5QrCode.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: 240 },
+      {
+        fps: 10,
+        // A fixed qrbox can exceed the actual camera feed size on some phones
+        // (especially portrait mode), which silently breaks detection instead
+        // of erroring. Size it relative to the real viewfinder instead.
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.7);
+          return { width: size, height: size };
+        }
+      },
       onScanSuccess,
       () => {}
     );
     scannerRunning = true;
   } catch (e) {
+    console.error('QR scanner failed to start', e);
     showError('staffError', 'Camera unavailable. Please use PIN login instead.');
   }
 }
@@ -547,30 +557,39 @@ async function onScanSuccess(decodedText) {
   try { html5QrCode.pause(true); } catch {}
   hideError('staffError');
 
-  const { data } = await insforge.database
-    .from('staff')
-    .select('id,name,role,status')
-    .eq('token', decodedText.trim())
-    .maybeSingle();
+  try {
+    const { data } = await insforge.database
+      .from('staff')
+      .select('id,name,role,status')
+      .eq('token', decodedText.trim())
+      .maybeSingle();
 
-  if (!data) {
-    await logAttempt({ method: 'qr', success: false, notes: 'Invalid QR code' });
-    showError('staffError', 'Invalid QR code');
+    if (!data) {
+      await logAttempt({ method: 'qr', success: false, notes: 'Invalid QR code' });
+      showError('staffError', 'Invalid QR code');
+      scanLock = false;
+      resumeScannerIfNeeded();
+      return;
+    }
+
+    if (data.status === 'disabled') {
+      await logAttempt({ staff_id: data.id, staff_name: data.name, method: 'qr', success: false, notes: 'Account disabled' });
+      showError('staffError', 'This account has been disabled. Please contact the owner');
+      scanLock = false;
+      resumeScannerIfNeeded();
+      return;
+    }
+
+    verifyLocationAndLogin(data, 'qr');
+    scanLock = false;
+  } catch (e) {
+    // Surface unexpected failures (e.g. a dropped network request) instead of
+    // leaving the camera silently paused with no feedback.
+    console.error('QR scan handling failed', e);
+    showError('staffError', 'Something went wrong reading that code. Please try again.');
     scanLock = false;
     resumeScannerIfNeeded();
-    return;
   }
-
-  if (data.status === 'disabled') {
-    await logAttempt({ staff_id: data.id, staff_name: data.name, method: 'qr', success: false, notes: 'Account disabled' });
-    showError('staffError', 'This account has been disabled. Please contact the owner');
-    scanLock = false;
-    resumeScannerIfNeeded();
-    return;
-  }
-
-  verifyLocationAndLogin(data, 'qr');
-  scanLock = false;
 }
 
 /* ── PIN login ── */

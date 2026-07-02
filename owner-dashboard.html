@@ -595,10 +595,25 @@ const FLAT_MENU = (() => {
     opts.push({ label: n, category: 'Add-ons', size: null, variant: null, price: p });
   });
 
+  const breads = [['Cheese Bread', 70], ['Ensaymada Classic 65g', 25], ['Pandexal Cheese 10pcs', 45],
+    ['Toast Chiffon', 35], ['Ensaymada Double Ube', 30], ['Loaf Bread Jumbo 500g', 65],
+    ['Loaf Bread Sakto 350g', 50], ['Classic Mamon', 25], ['Macaroons Chewy Macaroonies 8pcs', 40]];
+  breads.forEach(([n, p]) => opts.push({ label: n, category: 'Breads and Pastries', size: null, variant: null, price: p }));
+
+  const bottled = [['Sting 8oz', 20], ['Mt Dew 8oz', 15], ['Mt Dew 12oz', 20], ['Mt Dew 750ml', 35],
+    ['Pepsi', 15], ['Water 350ml', 15], ['Water 500ml', 20], ['C2', 20], ['Sprite Plastic Bottle', 25],
+    ['Coke Plastic Bottle', 25], ['Royal Plastic Bottle', 25], ['Mt Dew Plastic Bottle', 25],
+    ['Sting Plastic Bottle', 25], ['Ice 5kg', 40], ['Ice Regular', 5]];
+  bottled.forEach(([n, p]) => opts.push({ label: n, category: 'Bottled Drinks and Ice', size: null, variant: null, price: p }));
+
+  [['Yema Cake', 120], ['Ube Cake', 125]].forEach(([n, p]) => {
+    opts.push({ label: n, category: 'Cakes', size: null, variant: null, price: p });
+  });
+
   return opts;
 })();
 
-const CATEGORIES = ['Coffee', 'Milk Based', 'Fruit Soda', 'Lemonade', 'Silog Meals', 'Rice Bowl', 'Snacks', 'Add-ons'];
+const CATEGORIES = ['Coffee', 'Milk Based', 'Fruit Soda', 'Lemonade', 'Silog Meals', 'Rice Bowl', 'Snacks', 'Add-ons', 'Breads and Pastries', 'Bottled Drinks and Ice', 'Cakes'];
 
 /* ══════════════════════════════════════════════════════════════
    SALES TAB

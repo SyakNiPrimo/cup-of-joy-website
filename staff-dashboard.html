@@ -182,6 +182,13 @@
       <h2>Today's Orders</h2>
       <div id="salesOrderList"></div>
     </div>
+    <div class="card">
+      <h2>Today's Sales by Category</h2>
+      <table class="week-table">
+        <thead><tr><th>Category</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+        <tbody id="categoryBreakdownToday"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ATTENDANCE TAB -->
@@ -293,6 +300,7 @@ function escapeHtml(str) {
 function dateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+const CATEGORIES = ['Coffee', 'Milk Based', 'Fruit Soda', 'Lemonade', 'Silog Meals', 'Rice Bowl', 'Snacks', 'Add-ons', 'Breads and Pastries', 'Bottled Drinks and Ice', 'Cakes'];
 function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
 }
@@ -329,6 +337,7 @@ async function loadSales() {
   list.innerHTML = '';
   if (orders.length === 0) {
     list.innerHTML = '<div class="empty-state">No orders yet today.</div>';
+    document.getElementById('categoryBreakdownToday').innerHTML = '<tr><td colspan="3" class="empty-state">No data.</td></tr>';
     return;
   }
 
@@ -366,6 +375,20 @@ async function loadSales() {
     });
     list.appendChild(row);
   });
+
+  // Category breakdown, excluding voided orders' items to match Sales Today.
+  const allItems = countable.length
+    ? (await insforge.database.from('order_items').select('*').in('order_id', countable.map(o => o.id))).data
+    : [];
+  const byCat = {};
+  CATEGORIES.forEach(c => byCat[c] = { qty: 0, revenue: 0 });
+  (allItems || []).forEach(it => {
+    if (!byCat[it.category]) byCat[it.category] = { qty: 0, revenue: 0 };
+    byCat[it.category].qty += it.quantity;
+    byCat[it.category].revenue += Number(it.line_total);
+  });
+  document.getElementById('categoryBreakdownToday').innerHTML = Object.entries(byCat)
+    .map(([cat, v]) => `<tr><td>${escapeHtml(cat)}</td><td>${v.qty}</td><td>${money(v.revenue)}</td></tr>`).join('');
 }
 
 /* ══════════════════ ATTENDANCE TAB ══════════════════ */

@@ -773,6 +773,27 @@ const SNACKS = [
 
 const ADDON_ITEMS = ADDONS.map(a => ({ name: a.name, price: a.price }));
 
+const BREADS_AND_PASTRIES = [
+  { name: 'Cheese Bread', price: 70 }, { name: 'Ensaymada Classic 65g', price: 25 },
+  { name: 'Pandexal Cheese 10pcs', price: 45 }, { name: 'Toast Chiffon', price: 35 },
+  { name: 'Ensaymada Double Ube', price: 30 }, { name: 'Loaf Bread Jumbo 500g', price: 65 },
+  { name: 'Loaf Bread Sakto 350g', price: 50 }, { name: 'Classic Mamon', price: 25 },
+  { name: 'Macaroons Chewy Macaroonies 8pcs', price: 40 }
+];
+
+const BOTTLED_DRINKS_AND_ICE = [
+  { name: 'Sting 8oz', price: 20 }, { name: 'Mt Dew 8oz', price: 15 }, { name: 'Mt Dew 12oz', price: 20 },
+  { name: 'Mt Dew 750ml', price: 35 }, { name: 'Pepsi', price: 15 }, { name: 'Water 350ml', price: 15 },
+  { name: 'Water 500ml', price: 20 }, { name: 'C2', price: 20 }, { name: 'Sprite Plastic Bottle', price: 25 },
+  { name: 'Coke Plastic Bottle', price: 25 }, { name: 'Royal Plastic Bottle', price: 25 },
+  { name: 'Mt Dew Plastic Bottle', price: 25 }, { name: 'Sting Plastic Bottle', price: 25 },
+  { name: 'Ice 5kg', price: 40 }, { name: 'Ice Regular', price: 5 }
+];
+
+const CAKES = [
+  { name: 'Yema Cake', price: 120 }, { name: 'Ube Cake', price: 125 }
+];
+
 const CATEGORIES = [
   { name: 'Coffee', items: COFFEE, type: 'coffee' },
   { name: 'Milk Based', items: MILK_BASED, type: 'milkbased' },
@@ -781,7 +802,10 @@ const CATEGORIES = [
   { name: 'Silog Meals', items: SILOG, type: 'fixed' },
   { name: 'Rice Bowl', items: RICE_BOWL, type: 'fixed' },
   { name: 'Snacks', items: SNACKS, type: 'fixed' },
-  { name: 'Add-ons', items: ADDON_ITEMS, type: 'fixed' }
+  { name: 'Add-ons', items: ADDON_ITEMS, type: 'fixed' },
+  { name: 'Breads and Pastries', items: BREADS_AND_PASTRIES, type: 'fixed' },
+  { name: 'Bottled Drinks and Ice', items: BOTTLED_DRINKS_AND_ICE, type: 'fixed' },
+  { name: 'Cakes', items: CAKES, type: 'fixed' }
 ];
 
 const money = n => `₱${(Number(n) || 0).toFixed(2)}`;

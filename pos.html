@@ -791,6 +791,11 @@ const catNav = document.getElementById('catNav');
 const menuMain = document.getElementById('menuMain');
 const cardState = {}; // per-card selected size/variant
 
+// Custom Mix uses the same size/variant price grid as the individual flavors.
+const customMixState = { size: '16', variant: 'Regular' };
+const CUSTOM_MIX_PRICES = { 16: { Regular: 50, Yogurt: 60 }, 22: { Regular: 70, Yogurt: 80 } };
+function customMixPrice() { return CUSTOM_MIX_PRICES[customMixState.size][customMixState.variant]; }
+
 CATEGORIES.forEach((cat, ci) => {
   const pill = document.createElement('button');
   pill.className = 'cat-pill' + (ci === 0 ? ' active' : '');
@@ -815,9 +820,34 @@ CATEGORIES.forEach((cat, ci) => {
     card.innerHTML = `
       <div class="top-row"><div class="name">Custom Mix</div>
         <button class="recipe-btn" type="button" title="Recipe">👁</button></div>
-      <div class="price">₱60.00</div>
+      <div class="price">${money(customMixPrice())}</div>
+      <div class="toggle-group" id="customMixSizeToggle">
+        <button class="toggle-btn active" type="button" data-size="16">16oz</button>
+        <button class="toggle-btn" type="button" data-size="22">22oz</button>
+      </div>
+      <div class="toggle-group" id="customMixVariantToggle">
+        <button class="toggle-btn active" type="button" data-variant="Regular">Regular</button>
+        <button class="toggle-btn" type="button" data-variant="Yogurt">Yogurt</button>
+      </div>
       <div style="font-size:.7rem; opacity:.6; font-weight:700;">Pick any 2 flavors</div>
       <button class="add-btn" type="button">+ Add</button>`;
+    const customMixPriceEl = card.querySelector('.price');
+    card.querySelector('#customMixSizeToggle').querySelectorAll('.toggle-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        customMixState.size = b.dataset.size;
+        card.querySelector('#customMixSizeToggle').querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        customMixPriceEl.textContent = money(customMixPrice());
+      });
+    });
+    card.querySelector('#customMixVariantToggle').querySelectorAll('.toggle-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        customMixState.variant = b.dataset.variant;
+        card.querySelector('#customMixVariantToggle').querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        customMixPriceEl.textContent = money(customMixPrice());
+      });
+    });
     card.querySelector('.recipe-btn').addEventListener('click', () => openRecipe('Custom Mix', [{ rows: [
       { label: 'Note', v16: 'Split syrup pumps evenly between the 2 chosen flavors', v22: 'Split syrup pumps evenly between the 2 chosen flavors' },
       { label: 'Soda', v16: '180ml', v22: '250ml' } ] }]));
@@ -1119,6 +1149,7 @@ let selectedFlavors = [];
 function openCustomMix() {
   selectedFlavors = [];
   document.getElementById('customMixMsg').className = 'msg';
+  document.getElementById('addCustomMixBtn').textContent = `Add to Cart — ${money(customMixPrice())}`;
   const list = document.getElementById('flavorList');
   list.innerHTML = '';
   FRUIT_FLAVORS.forEach(f => {
@@ -1161,9 +1192,9 @@ document.getElementById('addCustomMixBtn').addEventListener('click', () => {
   addToCart({
     name: `Custom Mix: ${selectedFlavors[0]} + ${selectedFlavors[1]}`,
     category: 'Fruit Soda',
-    size: null,
-    variant: null,
-    unitPrice: 60,
+    size: customMixState.size + 'oz',
+    variant: customMixState.variant,
+    unitPrice: customMixPrice(),
     addons: [],
     notes: ''
   });

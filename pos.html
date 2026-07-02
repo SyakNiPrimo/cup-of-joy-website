@@ -59,6 +59,7 @@
     font-weight: 800; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
     background: rgba(255,253,240,.12); color: var(--cream); border: 1px solid rgba(255,253,240,.35);
     border-radius: 8px; padding: .5rem .8rem; cursor: pointer; white-space: nowrap;
+    text-decoration: none; display: inline-block;
   }
   .topbar-btn.logout { background: var(--red); border-color: var(--red); }
 
@@ -338,6 +339,7 @@
   </div>
   <div class="right">
     <span class="staff-name" id="staffNameLabel"></span>
+    <a class="topbar-btn" id="ownerDashboardLink" href="owner-dashboard.html" style="display:none;">← Dashboard</a>
     <button class="topbar-btn" id="historyBtn" type="button">History</button>
     <button class="topbar-btn logout" id="logoutBtn" type="button">Log Out</button>
   </div>
@@ -549,17 +551,27 @@ function getSession() {
 }
 const session = getSession();
 if (!session) window.location.href = 'login.html';
-else if (session.role === 'owner') window.location.href = 'owner-dashboard.html';
 
-document.getElementById('staffNameLabel').textContent = session?.staffName || '';
+// Owner can use the POS directly (e.g. covering the till). Orders placed by
+// the owner have no staff_id (owner isn't a row in the staff table) and are
+// labeled "Owner" everywhere staff_name would normally show.
+const isOwner = session?.role === 'owner';
+const currentStaffId = isOwner ? null : session?.staffId;
+const currentStaffName = isOwner ? 'Owner' : session?.staffName;
+
+document.getElementById('staffNameLabel').textContent = currentStaffName || '';
+if (isOwner) document.getElementById('ownerDashboardLink').style.display = '';
+
 document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem('cupofjoy_session');
   window.location.href = 'login.html';
 });
 
 /* Discounts default to owner-only (Phase 4 setting). Hide the discount row
-   for staff unless the owner has explicitly allowed it. */
+   for staff unless the owner has explicitly allowed it. The owner always
+   sees the discount field, regardless of the setting. */
 (async () => {
+  if (isOwner) return;
   try {
     const { data } = await insforge.database.from('settings').select('value').eq('key', 'allow_staff_discount').maybeSingle();
     if (data?.value !== 'true') document.getElementById('discountRow').style.display = 'none';
@@ -1347,8 +1359,8 @@ document.getElementById('confirmOrderBtn').addEventListener('click', async () =>
 
     const { data: orderRows, error: orderErr } = await insforge.database.from('orders').insert([{
       order_number: orderNumber,
-      staff_id: session.staffId,
-      staff_name: session.staffName,
+      staff_id: currentStaffId,
+      staff_name: currentStaffName,
       customer_name: customerName,
       order_type: orderType,
       subtotal, discount_amount: discount, discount_type: discountType, total,
@@ -1455,12 +1467,10 @@ async function loadHistory() {
   list.innerHTML = '<div class="empty-state">Loading…</div>';
 
   const shiftStart = new Date(session.loginAt).toISOString();
-  const { data, error } = await insforge.database
-    .from('orders')
-    .select('*')
-    .eq('staff_id', session.staffId)
-    .gte('created_at', shiftStart)
-    .order('created_at', { ascending: false });
+  // Owner-placed orders have no staff_id, so they're matched by staff_name instead.
+  let historyQuery = insforge.database.from('orders').select('*').gte('created_at', shiftStart);
+  historyQuery = isOwner ? historyQuery.is('staff_id', null).eq('staff_name', 'Owner') : historyQuery.eq('staff_id', currentStaffId);
+  const { data, error } = await historyQuery.order('created_at', { ascending: false });
 
   if (error || !data || data.length === 0) {
     list.innerHTML = '<div class="empty-state">No orders yet this shift.</div>';
@@ -1579,9 +1589,9 @@ async function saveEditedOrder({ subtotal, discount, total, discountType }) {
     subtotal, discount_amount: discount, discount_type: discountType, total,
     change_given: editingOrder.payment_method === 'cash' ? (Number(editingOrder.cash_received) - total) : null,
     status: 'edited',
-    edited_by: session.staffName,
+    edited_by: currentStaffName,
     edited_at: new Date().toISOString(),
-    edited_notes: 'Edited by staff'
+    edited_notes: isOwner ? 'Edited by owner' : 'Edited by staff'
   };
   // Only capture the pre-edit total the first time an order is edited, so
   // repeated edits don't overwrite the true original with an already-edited value.

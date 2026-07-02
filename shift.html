@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Shift Tracker — Cup of Joy</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --yellow: #FADA2A;
+    --brown: #3D2000;
+    --cream: #FFFDF0;
+    --brown-light: #6b3a00;
+    --red: #C0392B;
+    --green: #2E7D32;
+    --grey: #9a8f78;
+    --nav-h: 62px;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+    padding-bottom: calc(var(--nav-h) + 1.5rem);
+  }
+
+  button { font-family: 'Nunito', sans-serif; cursor: pointer; }
+
+  header.topbar {
+    background: var(--brown); color: var(--cream); padding: .85rem 1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+    position: sticky; top: 0; z-index: 60; flex-wrap: wrap;
+  }
+  header.topbar .logo-text { font-weight: 900; font-size: 1.15rem; white-space: nowrap; }
+  header.topbar .logo-text span { color: var(--yellow); }
+  header.topbar .clock { font-size: .72rem; font-weight: 700; opacity: .7; }
+  header.topbar .right { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+  header.topbar .staff-name { font-size: .8rem; font-weight: 800; }
+  .topbar-btn {
+    font-weight: 800; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+    background: var(--red); color: #fff; border: none;
+    border-radius: 8px; padding: .5rem .8rem; cursor: pointer; white-space: nowrap;
+  }
+
+  main { max-width: 560px; margin: 0 auto; padding: 1.25rem 1rem; }
+
+  .card {
+    background: #fff; border-radius: 18px; padding: 1.3rem; box-shadow: 0 6px 22px rgba(61,32,0,.08);
+    margin-bottom: 1.25rem;
+  }
+
+  .status-card { text-align: center; }
+  .status-card .staff { font-weight: 900; font-size: 1.15rem; }
+  .status-card .role { font-size: .78rem; font-weight: 700; opacity: .6; margin-bottom: 1rem; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1.1rem; border-radius: 50px;
+    font-weight: 800; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 1rem;
+  }
+  .status-pill .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .status-pill.in { background: #e8f5e9; color: var(--green); }
+  .status-pill.in .dot { background: var(--green); }
+  .status-pill.out { background: #f4f0e4; color: var(--grey); }
+  .status-pill.out .dot { background: var(--grey); }
+
+  .status-detail { font-size: .85rem; font-weight: 700; opacity: .75; margin-bottom: .3rem; }
+  .live-timer { font-size: 2rem; font-weight: 900; color: var(--brown-light); margin: .5rem 0 1rem; font-variant-numeric: tabular-nums; }
+
+  .btn {
+    width: 100%; font-weight: 800; font-size: .95rem; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--brown); background: var(--yellow); border: none; border-radius: 12px; padding: 1rem;
+  }
+  .btn.out { background: var(--brown); color: var(--yellow); }
+  .btn:disabled { opacity: .5; }
+
+  .msg { display: none; font-weight: 700; font-size: .82rem; border-radius: 10px; padding: .65rem .85rem; margin-top: .8rem; text-align: center; }
+  .msg.show { display: block; }
+  .msg.error { background: #fdecea; color: var(--red); border: 1px solid #f5c6c1; }
+  .msg.success { background: #e8f5e9; color: var(--green); border: 1px solid #c5e6c8; }
+
+  .card h2 { font-size: 1rem; margin-bottom: .9rem; }
+
+  .log-entry {
+    display: flex; justify-content: space-between; align-items: center; gap: .6rem;
+    padding: .7rem 0; border-bottom: 1px solid #f0e8d0;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry .times { font-weight: 800; font-size: .88rem; }
+  .log-entry .times .arrow { opacity: .4; font-weight: 600; margin: 0 .3rem; }
+  .log-entry .sub { font-size: .74rem; opacity: .6; font-weight: 700; margin-top: .15rem; }
+  .log-entry .right { text-align: right; }
+  .log-entry .duration { font-weight: 900; font-size: .9rem; }
+  .method-tag {
+    display: inline-block; font-size: .62rem; font-weight: 800; text-transform: uppercase;
+    padding: .15rem .5rem; border-radius: 50px; background: #f4f0e4; color: var(--brown-light); margin-top: .2rem;
+  }
+  .ongoing-tag { color: var(--green); }
+
+  .total-row {
+    display: flex; justify-content: space-between; font-weight: 900; font-size: 1rem;
+    border-top: 2px dashed #eee3c8; margin-top: .5rem; padding-top: .7rem;
+  }
+
+  .empty-state { text-align: center; font-weight: 700; opacity: .5; padding: 1.5rem 0; }
+
+  /* Location overlay */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(61,32,0,.88); display: none; align-items: center;
+    justify-content: center; flex-direction: column; gap: 1.1rem; z-index: 500; color: var(--cream);
+    text-align: center; padding: 1.5rem;
+  }
+  .overlay.show { display: flex; }
+  .spinner {
+    width: 46px; height: 46px; border-radius: 50%; border: 4px solid rgba(255,253,240,.25);
+    border-top-color: var(--yellow); animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay p { font-weight: 700; font-size: .95rem; max-width: 280px; }
+
+  /* Clock-out summary modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(61,32,0,.6); display: none;
+    align-items: center; justify-content: center; z-index: 400; padding: 1.25rem;
+  }
+  .modal-backdrop.show { display: flex; }
+  .summary-modal {
+    background: #fff; border-radius: 18px; max-width: 340px; width: 100%; padding: 1.75rem 1.5rem; text-align: center;
+  }
+  .summary-modal .big-check { font-size: 2.5rem; margin-bottom: .5rem; }
+  .summary-modal h3 { font-size: 1.1rem; margin-bottom: 1rem; }
+  .summary-modal .row { display: flex; justify-content: space-between; font-weight: 700; padding: .4rem 0; border-bottom: 1px solid #f0e8d0; }
+  .summary-modal .row:last-of-type { border-bottom: none; }
+  .summary-modal button { margin-top: 1.25rem; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h); background: #fff;
+    border-top: 1px solid rgba(61,32,0,.1); display: flex; z-index: 120; box-shadow: 0 -2px 10px rgba(61,32,0,.06);
+  }
+  .bn-link {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .15rem; text-decoration: none; color: var(--brown); opacity: .5; font-weight: 800;
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .bn-link .icon { font-size: 1.2rem; }
+  .bn-link.active { opacity: 1; color: var(--brown-light); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="logo-text">Cup of <span>Joy</span></div>
+    <div class="clock" id="clock">--</div>
+  </div>
+  <div class="right">
+    <span class="staff-name" id="staffNameLabel"></span>
+    <button class="topbar-btn" id="logoutBtn" type="button">Log Out</button>
+  </div>
+</header>
+
+<main>
+  <div class="card status-card">
+    <div class="staff" id="staffName"></div>
+    <div class="role" id="staffRole"></div>
+    <div id="statusPillWrap"></div>
+    <div id="statusDetail"></div>
+    <div class="msg" id="statusMsg"></div>
+    <button class="btn" id="clockBtn" type="button">Clock In</button>
+  </div>
+
+  <div class="card">
+    <h2>Today's Shift Log</h2>
+    <div id="todayLog"></div>
+    <div class="total-row"><span>Total Hours Today</span><span id="totalToday">0h 0m</span></div>
+  </div>
+</main>
+
+<div class="overlay" id="locationOverlay">
+  <div class="spinner"></div>
+  <p id="overlayText">Checking your location…</p>
+</div>
+
+<div class="modal-backdrop" id="summaryModal">
+  <div class="summary-modal">
+    <div class="big-check">✅</div>
+    <h3>Shift Complete!</h3>
+    <div class="row"><span>This Shift</span><span id="summaryDuration">0h 0m</span></div>
+    <div class="row"><span>Total Hours Today</span><span id="summaryTotal">0h 0m</span></div>
+    <button class="btn" id="summaryCloseBtn" type="button">Done</button>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="pos.html" class="bn-link"><span class="icon">🧾</span>POS</a>
+  <a href="shift.html" class="bn-link active"><span class="icon">⏱️</span>Shift</a>
+  <a href="staff-dashboard.html" class="bn-link"><span class="icon">📊</span>Dashboard</a>
+</nav>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ══════════════════ SESSION GUARD ══════════════════ */
+const SESSION_MAX_INACTIVITY_MS = 12 * 60 * 60 * 1000; // 12 hours
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('cupofjoy_session'));
+    if (!s) return null;
+    if (Date.now() - (s.lastActivityAt || s.loginAt) > SESSION_MAX_INACTIVITY_MS) {
+      sessionStorage.removeItem('cupofjoy_session');
+      return null;
+    }
+    s.lastActivityAt = Date.now();
+    sessionStorage.setItem('cupofjoy_session', JSON.stringify(s));
+    return s;
+  } catch { return null; }
+}
+const session = getSession();
+if (!session) window.location.href = 'login.html';
+else if (session.role === 'owner') window.location.href = 'owner-dashboard.html';
+
+document.getElementById('staffNameLabel').textContent = session?.staffName || '';
+document.getElementById('staffName').textContent = session?.staffName || '';
+document.getElementById('staffRole').textContent = session?.staffRole === 'full_time' ? 'Full Time' : 'Part Time';
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('cupofjoy_session');
+  window.location.href = 'login.html';
+});
+
+/* ══════════════════ CLOCK ══════════════════ */
+function tickClock() {
+  const now = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  document.getElementById('clock').textContent = now.toLocaleString('en-PH', opts);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ══════════════════ CONSTANTS ══════════════════ */
+let SHOP_LAT = 16.230069995562978;
+let SHOP_LNG = 120.48822516474148;
+let RADIUS_M = 50;
+
+/* Pull owner-configurable shop location/radius from settings (Phase 4), falling
+   back to the defaults above if settings haven't been set yet or fail to load. */
+(async () => {
+  try {
+    const { data } = await insforge.database.from('settings').select('key,value')
+      .in('key', ['shop_lat', 'shop_lng', 'radius_meters']);
+    (data || []).forEach(row => {
+      if (row.key === 'shop_lat' && row.value) SHOP_LAT = parseFloat(row.value);
+      if (row.key === 'shop_lng' && row.value) SHOP_LNG = parseFloat(row.value);
+      if (row.key === 'radius_meters' && row.value) RADIUS_M = parseFloat(row.value);
+    });
+  } catch (e) { console.error('Failed to load location settings, using defaults', e); }
+})();
+
+function distanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtDurationMin(mins) {
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  return `${h}h ${m}m`;
+}
+
+function fmtDurationLive(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/* ══════════════════ STATE ══════════════════ */
+let openShift = null;   // currently open (un-clocked-out) shift row, if any
+let liveTimerInterval = null;
+
+function showOverlay(text) {
+  document.getElementById('overlayText').textContent = text || 'Checking your location…';
+  document.getElementById('locationOverlay').classList.add('show');
+}
+function hideOverlay() {
+  document.getElementById('locationOverlay').classList.remove('show');
+}
+function showStatusMsg(text) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = text;
+  el.className = 'msg show error';
+}
+function hideStatusMsg() {
+  document.getElementById('statusMsg').className = 'msg';
+}
+
+/* ══════════════════ LOCATION CHECK ══════════════════ */
+function checkLocation(onSuccess) {
+  showOverlay('Checking your location…');
+  if (!navigator.geolocation) {
+    hideOverlay();
+    showStatusMsg('Location access is required. Please enable it in your browser settings');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const distance = distanceMeters(latitude, longitude, SHOP_LAT, SHOP_LNG);
+      hideOverlay();
+      if (distance <= RADIUS_M) {
+        onSuccess({ latitude, longitude, distance });
+      } else {
+        showStatusMsg(`You must be at the shop to ${openShift ? 'clock out' : 'clock in'}`);
+      }
+    },
+    () => {
+      hideOverlay();
+      showStatusMsg('Location access is required. Please enable it in your browser settings');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+/* ══════════════════ RENDER STATUS ══════════════════ */
+function renderStatus() {
+  if (liveTimerInterval) clearInterval(liveTimerInterval);
+
+  const pillWrap = document.getElementById('statusPillWrap');
+  const detail = document.getElementById('statusDetail');
+  const btn = document.getElementById('clockBtn');
+
+  if (openShift) {
+    pillWrap.innerHTML = `<div class="status-pill in"><span class="dot"></span>Clocked In</div>
+      <div class="live-timer" id="liveTimer">00:00:00</div>`;
+    detail.innerHTML = `<div class="status-detail">Clocked in at ${fmtTime(openShift.clock_in_time)}</div>`;
+    btn.textContent = 'Clock Out';
+    btn.className = 'btn out';
+
+    const startMs = new Date(openShift.clock_in_time).getTime();
+    const tick = () => {
+      const el = document.getElementById('liveTimer');
+      if (el) el.textContent = fmtDurationLive(Date.now() - startMs);
+    };
+    tick();
+    liveTimerInterval = setInterval(tick, 1000);
+  } else {
+    pillWrap.innerHTML = `<div class="status-pill out"><span class="dot"></span>Not Clocked In</div>`;
+    detail.innerHTML = lastClockOutTime
+      ? `<div class="status-detail">Last clocked out at ${fmtTime(lastClockOutTime)}</div>`
+      : `<div class="status-detail">No shifts recorded yet today</div>`;
+    btn.textContent = 'Clock In';
+    btn.className = 'btn';
+  }
+}
+
+let lastClockOutTime = null;
+
+async function loadStatus() {
+  const { data: open } = await insforge.database
+    .from('shift_logs')
+    .select('*')
+    .eq('staff_id', session.staffId)
+    .is('clock_out_time', null)
+    .order('clock_in_time', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  openShift = open || null;
+
+  if (!openShift) {
+    const { data: last } = await insforge.database
+      .from('shift_logs')
+      .select('clock_out_time')
+      .eq('staff_id', session.staffId)
+      .not('clock_out_time', 'is', null)
+      .order('clock_out_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    lastClockOutTime = last?.clock_out_time || null;
+  }
+
+  renderStatus();
+}
+
+/* ══════════════════ CLOCK IN / OUT ══════════════════ */
+document.getElementById('clockBtn').addEventListener('click', () => {
+  hideStatusMsg();
+  document.getElementById('clockBtn').disabled = true;
+  checkLocation(async (loc) => {
+    if (openShift) await doClockOut(loc);
+    else await doClockIn(loc);
+    document.getElementById('clockBtn').disabled = false;
+  });
+  setTimeout(() => { document.getElementById('clockBtn').disabled = false; }, 20000);
+});
+
+async function doClockIn(loc) {
+  const { error } = await insforge.database.from('shift_logs').insert([{
+    staff_id: session.staffId,
+    staff_name: session.staffName,
+    date: todayStr(),
+    clock_in_time: new Date().toISOString(),
+    clock_in_lat: loc.latitude,
+    clock_in_lng: loc.longitude,
+    clock_in_distance: loc.distance,
+    method: 'auto'
+  }]);
+  if (error) { showStatusMsg('Failed to clock in. Please try again.'); console.error(error); return; }
+  await loadStatus();
+  await loadTodayLog();
+}
+
+async function doClockOut(loc) {
+  if (!openShift) return;
+  const clockOutTime = new Date();
+  const durationMinutes = Math.round((clockOutTime.getTime() - new Date(openShift.clock_in_time).getTime()) / 60000);
+
+  const { error } = await insforge.database.from('shift_logs').update({
+    clock_out_time: clockOutTime.toISOString(),
+    clock_out_lat: loc.latitude,
+    clock_out_lng: loc.longitude,
+    clock_out_distance: loc.distance,
+    duration_minutes: durationMinutes
+  }).eq('id', openShift.id);
+
+  if (error) { showStatusMsg('Failed to clock out. Please try again.'); console.error(error); return; }
+
+  await loadStatus();
+  const totalTodayMinutes = await loadTodayLog();
+  showSummary(durationMinutes, totalTodayMinutes);
+}
+
+function showSummary(shiftMin, totalMin) {
+  document.getElementById('summaryDuration').textContent = fmtDurationMin(shiftMin);
+  document.getElementById('summaryTotal').textContent = fmtDurationMin(totalMin);
+  document.getElementById('summaryModal').classList.add('show');
+}
+document.getElementById('summaryCloseBtn').addEventListener('click', () => {
+  document.getElementById('summaryModal').classList.remove('show');
+});
+
+/* ══════════════════ TODAY'S LOG ══════════════════ */
+async function loadTodayLog() {
+  const { data } = await insforge.database
+    .from('shift_logs')
+    .select('*')
+    .eq('staff_id', session.staffId)
+    .eq('date', todayStr())
+    .order('clock_in_time', { ascending: true });
+
+  const list = document.getElementById('todayLog');
+  list.innerHTML = '';
+
+  let totalMinutes = 0;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div class="empty-state">No shifts clocked in today yet.</div>';
+  } else {
+    data.forEach(row => {
+      const isOngoing = !row.clock_out_time;
+      let duration;
+      if (isOngoing) {
+        duration = (Date.now() - new Date(row.clock_in_time).getTime()) / 60000;
+      } else {
+        duration = row.duration_minutes ?? ((new Date(row.clock_out_time) - new Date(row.clock_in_time)) / 60000);
+      }
+      totalMinutes += duration;
+
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <div>
+          <div class="times">${fmtTime(row.clock_in_time)}<span class="arrow">→</span>${isOngoing ? '<span class="ongoing-tag">Ongoing</span>' : fmtTime(row.clock_out_time)}</div>
+          <span class="method-tag">${row.method === 'manual' ? 'Manual' : 'Auto'}</span>
+        </div>
+        <div class="right">
+          <div class="duration">${fmtDurationMin(duration)}</div>
+        </div>`;
+      list.appendChild(entry);
+    });
+  }
+
+  document.getElementById('totalToday').textContent = fmtDurationMin(totalMinutes);
+  return totalMinutes;
+}
+
+/* ══════════════════ INIT ══════════════════ */
+(async () => {
+  await loadStatus();
+  await loadTodayLog();
+  setInterval(loadTodayLog, 30000); // keep "ongoing" duration + total roughly fresh
+})();
+</script>
+</body>
+</html>

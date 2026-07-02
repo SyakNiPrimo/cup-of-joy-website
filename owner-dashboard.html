@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Owner Dashboard — Cup of Joy</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --yellow: #FADA2A; --brown: #3D2000; --cream: #FFFDF0; --brown-light: #6b3a00;
+    --red: #C0392B; --green: #2E7D32; --grey: #9a8f78;
+  }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; padding-bottom: 3rem; }
+  button, select, input, textarea { font-family: 'Nunito', sans-serif; }
+
+  header.topbar {
+    background: var(--brown); color: var(--cream); padding: .9rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 80;
+  }
+  header.topbar .logo-text { font-weight: 900; font-size: 1.25rem; }
+  header.topbar .logo-text span { color: var(--yellow); }
+  header.topbar .clock { font-size: .72rem; font-weight: 700; opacity: .7; }
+  header.topbar .right { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  header.topbar .owner-label {
+    font-weight: 800; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
+    background: var(--yellow); color: var(--brown); padding: .35rem .8rem; border-radius: 50px;
+  }
+  .topbar-btn {
+    font-weight: 800; font-size: .74rem; letter-spacing: .05em; text-transform: uppercase;
+    background: rgba(255,253,240,.12); color: var(--cream); border: 1px solid rgba(255,253,240,.35);
+    border-radius: 8px; padding: .5rem .85rem; cursor: pointer; text-decoration: none; display: inline-block;
+  }
+  .topbar-btn.logout { background: var(--red); border-color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0; background: #fff; padding: 0 1.5rem; position: sticky; top: 58px; z-index: 75;
+    box-shadow: 0 3px 10px rgba(61,32,0,.05); overflow-x: auto;
+  }
+  .tab-btn {
+    font-weight: 800; font-size: .85rem; letter-spacing: .02em; color: var(--brown-light);
+    background: none; border: none; padding: 1rem 1.3rem; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--brown); border-bottom-color: var(--yellow); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .card { background: #fff; border-radius: 16px; padding: 1.3rem; box-shadow: 0 5px 18px rgba(61,32,0,.07); margin-bottom: 1.3rem; }
+  .card h2 { font-size: 1.05rem; margin-bottom: 1rem; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+  .card-head h2 { margin-bottom: 0; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .9rem; margin-bottom: 1.3rem; }
+  .stat-box { background: #fff; border-radius: 14px; padding: 1.1rem; text-align: center; box-shadow: 0 5px 18px rgba(61,32,0,.07); }
+  .stat-box .label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; opacity: .55; margin-bottom: .4rem; }
+  .stat-box .value { font-size: 1.35rem; font-weight: 900; color: var(--brown-light); }
+
+  .btn {
+    font-weight: 800; font-size: .8rem; letter-spacing: .03em; text-transform: uppercase;
+    color: var(--brown); background: var(--yellow); border: none; border-radius: 10px; padding: .65rem 1.1rem; cursor: pointer;
+  }
+  .btn-dark { background: var(--brown); color: var(--yellow); }
+  .btn-outline { background: transparent; color: var(--brown); border: 2px solid var(--brown); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-sm { padding: .4rem .75rem; font-size: .68rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  label { display: block; font-weight: 700; font-size: .74rem; margin-bottom: .35rem; color: var(--brown-light); }
+  input, select, textarea {
+    padding: .6rem .75rem; border-radius: 9px; border: 2px solid #eee3c8;
+    background: var(--cream); color: var(--brown); font-weight: 700; font-size: .84rem; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--yellow); }
+
+  .filter-row { display: flex; gap: .7rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
+  .filter-row .field { min-width: 130px; }
+
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid #f0e8d0; white-space: nowrap; }
+  th { font-weight: 800; text-transform: uppercase; font-size: .66rem; opacity: .6; }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover { background: #fffaf0; }
+
+  .badge { font-size: .64rem; font-weight: 800; text-transform: uppercase; padding: .2rem .6rem; border-radius: 50px; }
+  .badge.active, .badge.auto, .badge.present { background: #e8f5e9; color: var(--green); }
+  .badge.edited, .badge.manual { background: #fff3cd; color: #8a6d00; }
+  .badge.voided { background: #fdecea; color: var(--red); }
+
+  .detail-row td { background: var(--cream); }
+  .detail-box { padding: .9rem; }
+  .summary-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .85rem; padding: .25rem 0; }
+  .summary-row.total { font-weight: 900; border-top: 1px dashed #ddd; margin-top: .3rem; padding-top: .4rem; }
+  .receipt-sub { font-size: .74rem; opacity: .6; padding-left: .5rem; }
+
+  .empty-state { text-align: center; font-weight: 700; opacity: .5; padding: 1.5rem 0; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .4rem; }
+  .status-dot.in { background: var(--green); }
+  .status-dot.out { background: var(--grey); }
+
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(61,32,0,.6); display: none;
+    align-items: center; justify-content: center; z-index: 300; padding: 1.25rem; overflow-y: auto;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: #fff; border-radius: 16px; max-width: 560px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto; margin: auto; }
+  .modal.wide { max-width: 720px; }
+  .modal h3 { font-size: 1.1rem; margin-bottom: 1rem; }
+  .modal p { font-weight: 600; opacity: .8; margin-bottom: 1rem; }
+  .btn-row { display: flex; gap: .6rem; margin-top: 1rem; }
+  .btn-row .btn { flex: 1; }
+
+  .msg { display: none; font-weight: 700; font-size: .82rem; border-radius: 10px; padding: .65rem .85rem; margin-top: .8rem; }
+  .msg.show { display: block; }
+  .msg.error { background: #fdecea; color: var(--red); border: 1px solid #f5c6c1; }
+  .msg.success { background: #e8f5e9; color: var(--green); border: 1px solid #c5e6c8; }
+
+  /* Order edit modal */
+  .edit-item-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem 0; border-bottom: 1px solid #f0e8d0; font-size: .85rem; font-weight: 700; }
+  .edit-item-row .qty-group { display: flex; align-items: center; gap: .4rem; }
+  .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--cream); font-weight: 900; }
+  .add-item-row { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .add-item-row select { flex: 2; min-width: 200px; }
+  .add-item-row input { flex: 0 0 70px; }
+
+  /* Receipt */
+  .receipt-box { background: #fff; border-radius: 14px; padding: 1.1rem; font-size: .85rem; }
+  .receipt-box .r-header { text-align: center; margin-bottom: .8rem; }
+  .receipt-box .r-header .logo-text { font-weight: 900; font-size: 1.2rem; color: var(--brown); }
+  .receipt-box .r-header .logo-text span { color: #b89a10; }
+  .receipt-box .r-meta { font-size: .74rem; opacity: .7; font-weight: 700; text-align: center; margin-bottom: .8rem; }
+  .receipt-box hr { border: none; border-top: 1px dashed #ccc; margin: .6rem 0; }
+  .receipt-line { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: .3rem; }
+  .receipt-thanks { text-align: center; font-weight: 800; margin-top: .8rem; font-size: .85rem; }
+
+  /* Settings */
+  .ingredient-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .8rem; }
+  .ingredient-field { background: var(--cream); border-radius: 10px; padding: .6rem .8rem; }
+  .ingredient-field .ing-name { font-weight: 800; font-size: .82rem; margin-bottom: .45rem; }
+  .ingredient-field .ing-inputs { display: flex; gap: .6rem; }
+  .ingredient-field .ing-inputs > div { flex: 1; }
+  .ingredient-field .ing-inputs label { margin: 0 0 .2rem; font-size: .64rem; text-transform: uppercase; opacity: .6; }
+  .ingredient-field input { width: 100%; padding: .4rem .5rem; }
+  .ingredient-field.low { background: #fdecea; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 0; }
+  .switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: #ddd0ab; border-radius: 26px; transition: .2s; }
+  .slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: var(--green); }
+  .switch input:checked + .slider::before { transform: translateX(22px); }
+  .biz-info-row { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem 0; border-bottom: 1px solid #f0e8d0; font-weight: 700; font-size: .85rem; }
+  .biz-info-row span:first-child { opacity: .6; }
+
+  .loading { text-align: center; font-weight: 700; opacity: .5; padding: 2rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="logo-text">Cup of <span>Joy</span></div>
+    <div class="clock" id="clock">--</div>
+  </div>
+  <div class="right">
+    <span class="owner-label">Owner</span>
+    <a class="topbar-btn" href="staff-manager.html">Staff Manager</a>
+    <a class="topbar-btn" href="manual-time.html">Manual Time Entry</a>
+    <button class="topbar-btn logout" id="logoutBtn" type="button">Log Out</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="sales" type="button">Sales</button>
+  <button class="tab-btn" data-tab="staff" type="button">Staff and Shifts</button>
+  <button class="tab-btn" data-tab="salary" type="button">Salary</button>
+  <button class="tab-btn" data-tab="settings" type="button">Settings</button>
+</div>
+
+<main>
+  <!-- ═══════════════ SALES TAB ═══════════════ -->
+  <div class="tab-panel active" id="tab-sales">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">Today's Sales</div><div class="value" id="statTodaySales">₱0.00</div></div>
+      <div class="stat-box"><div class="label">Today's Orders</div><div class="value" id="statTodayOrders">0</div></div>
+      <div class="stat-box"><div class="label">This Week</div><div class="value" id="statWeekSales">₱0.00</div></div>
+      <div class="stat-box"><div class="label">This Month</div><div class="value" id="statMonthSales">₱0.00</div></div>
+      <div class="stat-box"><div class="label">Orders This Month</div><div class="value" id="statMonthOrders">0</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Sales by Staff Today</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Staff</th><th>Orders</th><th>Total Sales</th></tr></thead>
+        <tbody id="staffSalesToday"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h2>Best Selling Items Today</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Item</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+        <tbody id="bestSellersToday"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Sales History</h2>
+        <button class="btn btn-outline btn-sm" id="exportSalesCsvBtn" type="button">Export CSV</button>
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label for="salesRangeType">Range</label>
+          <select id="salesRangeType">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field" id="salesCustomStartWrap" style="display:none;">
+          <label for="salesCustomStart">From</label>
+          <input type="date" id="salesCustomStart" />
+        </div>
+        <div class="field" id="salesCustomEndWrap" style="display:none;">
+          <label for="salesCustomEnd">To</label>
+          <input type="date" id="salesCustomEnd" />
+        </div>
+        <button class="btn btn-outline btn-sm" id="applySalesFilterBtn" type="button">Apply</button>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Order #</th><th>Date/Time</th><th>Customer</th><th>Staff</th><th>Type</th><th>Items</th><th>Discount</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
+        <tbody id="salesHistoryBody"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h2>Sales Breakdown by Category</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Category</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+        <tbody id="categoryBreakdown"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STAFF AND SHIFTS TAB ═══════════════ -->
+  <div class="tab-panel" id="tab-staff">
+    <div class="card">
+      <h2>Staff Status</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Staff</th><th>Role</th><th>Status</th><th>Since / Duration</th></tr></thead>
+        <tbody id="staffStatusBody"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Shift Log</h2>
+        <button class="btn btn-outline btn-sm" id="exportShiftCsvBtn" type="button">Export CSV</button>
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label for="shiftRangeType">Range</label>
+          <select id="shiftRangeType">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field" id="shiftCustomStartWrap" style="display:none;">
+          <label for="shiftCustomStart">From</label>
+          <input type="date" id="shiftCustomStart" />
+        </div>
+        <div class="field" id="shiftCustomEndWrap" style="display:none;">
+          <label for="shiftCustomEnd">To</label>
+          <input type="date" id="shiftCustomEnd" />
+        </div>
+        <button class="btn btn-outline btn-sm" id="applyShiftFilterBtn" type="button">Apply</button>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Staff</th><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Duration</th><th>Method</th><th>Distance</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="shiftLogBody"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
+      </table></div>
+      <h2 style="margin-top:1.2rem;">Total Hours per Staff (Selected Period)</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Staff</th><th>Total Hours</th></tr></thead>
+        <tbody id="shiftTotalsBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SALARY TAB ═══════════════ -->
+  <div class="tab-panel" id="tab-salary">
+    <div class="card">
+      <div class="card-head">
+        <h2>Pay Period</h2>
+        <button class="btn btn-outline btn-sm" id="exportSalaryCsvBtn" type="button">Export CSV</button>
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label for="periodSelect">Select Period</label>
+          <select id="periodSelect"></select>
+        </div>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Staff</th><th>Role</th><th>Days Worked</th><th>Daily Rate</th><th>Total Pay</th><th>Payment Date</th><th>Payslip</th></tr></thead>
+        <tbody id="salaryBody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+      </table></div>
+      <div class="summary-row total" style="font-size:1.05rem; padding:.8rem .5rem 0;"><span>Grand Total</span><span id="salaryGrandTotal">₱0.00</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SETTINGS TAB ═══════════════ -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="card">
+      <h2>Business Info</h2>
+      <div class="biz-info-row"><span>Shop Name</span><span id="bizShopName">—</span></div>
+      <div class="biz-info-row"><span>Address</span><span id="bizAddress">—</span></div>
+      <div class="biz-info-row"><span>Coordinates</span><span id="bizCoords">—</span></div>
+      <div class="biz-info-row" style="border-bottom:none;">
+        <span>Allowed Radius (meters)</span>
+        <input type="number" id="radiusInput" min="1" style="width:90px;" />
+      </div>
+      <div class="msg" id="radiusMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Discount Settings</h2>
+      <div class="toggle-row">
+        <div>
+          <div style="font-weight:800; font-size:.9rem;">Allow staff to apply discounts</div>
+          <div style="font-size:.78rem; opacity:.6; font-weight:600;">When off, only the owner can apply discounts on orders.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="allowDiscountToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="msg" id="discountMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Low Stock Warnings — Ingredient Stock Levels</h2>
+        <button class="btn btn-dark btn-sm" id="saveStockBtn" type="button">Save</button>
+      </div>
+      <p style="font-size:.8rem; opacity:.65; font-weight:600; margin-bottom:1rem;">Set current stock and the minimum level for each ingredient. Staff see a warning on POS when current stock falls below the minimum.</p>
+      <div class="ingredient-grid" id="ingredientGrid"></div>
+      <div class="msg" id="stockMsg"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ORDER DETAIL / EDIT MODAL -->
+<div class="modal-backdrop" id="orderModal">
+  <div class="modal wide">
+    <h3 id="orderModalTitle">Order Details</h3>
+    <div id="orderModalBody"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="orderModalCloseBtn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOID CONFIRM -->
+<div class="modal-backdrop" id="voidModal">
+  <div class="modal">
+    <h3>Void This Order?</h3>
+    <p>This order will be marked Voided. It stays in history but is excluded from sales totals.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="voidCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-red" id="voidConfirmBtn" type="button">Void Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="modal">
+    <div class="receipt-box" id="receiptBox"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="receiptPrintBtn" type="button">Print</button>
+      <button class="btn btn-dark" id="receiptCloseBtn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIFT EDIT MODAL -->
+<div class="modal-backdrop" id="shiftEditModal">
+  <div class="modal">
+    <h3>Edit Shift Entry</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.8rem;">
+      <div><label for="shiftEditDate">Date</label><input type="date" id="shiftEditDate" /></div>
+      <div></div>
+      <div><label for="shiftEditIn">Clock In</label><input type="time" id="shiftEditIn" /></div>
+      <div><label for="shiftEditOut">Clock Out</label><input type="time" id="shiftEditOut" /></div>
+    </div>
+    <div style="margin-top:.8rem;"><label for="shiftEditNote">Note</label><input type="text" id="shiftEditNote" style="width:100%;" /></div>
+    <div class="msg" id="shiftEditMsg"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="shiftEditCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-dark" id="shiftEditSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIFT DELETE CONFIRM -->
+<div class="modal-backdrop" id="shiftDeleteModal">
+  <div class="modal">
+    <h3>Delete Shift Entry?</h3>
+    <p>This permanently removes this clock-in/out record.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="shiftDeleteCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-red" id="shiftDeleteConfirmBtn" type="button">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ══════════════════ SESSION GUARD (owner only) ══════════════════ */
+const SESSION_MAX_INACTIVITY_MS = 12 * 60 * 60 * 1000; // 12 hours
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('cupofjoy_session'));
+    if (!s) return null;
+    if (Date.now() - (s.lastActivityAt || s.loginAt) > SESSION_MAX_INACTIVITY_MS) {
+      sessionStorage.removeItem('cupofjoy_session');
+      return null;
+    }
+    s.lastActivityAt = Date.now();
+    sessionStorage.setItem('cupofjoy_session', JSON.stringify(s));
+    return s;
+  } catch { return null; }
+}
+const session = getSession();
+if (!session) window.location.href = 'login.html';
+else if (session.role !== 'owner') window.location.href = 'staff-dashboard.html';
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('cupofjoy_session');
+  window.location.href = 'login.html';
+});
+
+/* ══════════════════ CLOCK ══════════════════ */
+function tickClock() {
+  const now = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  document.getElementById('clock').textContent = now.toLocaleString('en-PH', opts);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ══════════════════ TABS ══════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ══════════════════ HELPERS ══════════════════ */
+const money = n => `₱${(Number(n) || 0).toFixed(2)}`;
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+function dateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function fmtTime(iso) { return iso ? new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) : '—'; }
+function fmtDateTime(iso) { return iso ? new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'; }
+function fmtDurationMin(mins) {
+  if (mins == null) return '—';
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return `${h}h ${m}m`;
+}
+function fmtDateLong(d) { return d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }); }
+function fmtDateShort(d) { return d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' }); }
+function typeLabel(t) { return { dine_in: 'Dine In', takeout: 'Takeout', delivery: 'Delivery' }[t] || t; }
+
+function getWeekStart(date) {
+  const dow = date.getDay();
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(date); monday.setDate(date.getDate() + diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function rangeForType(type, customStart, customEnd) {
+  const now = new Date();
+  let start, end;
+  if (type === 'daily') {
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  } else if (type === 'weekly') {
+    start = getWeekStart(now);
+    end = new Date(start); end.setDate(start.getDate() + 7);
+  } else if (type === 'monthly') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  } else {
+    start = customStart ? new Date(customStart + 'T00:00:00') : new Date(now.getFullYear(), now.getMonth(), 1);
+    end = customEnd ? new Date(customEnd + 'T23:59:59.999') : now;
+  }
+  return { start, end };
+}
+
+function downloadCSV(filename, headers, rows) {
+  const esc = v => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.map(esc).join(','), ...rows.map(r => r.map(esc).join(','))];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/* ══════════════════ FLAT MENU (for order-edit "add item") ══════════════════ */
+const FLAT_MENU = (() => {
+  const opts = [];
+  const coffee = [
+    ['Americano', 90, 125], ['Latte', 95, 130], ['Cappuccino', 95, 130, ['Hot']],
+    ['Caramel Macchiato', 100, 135], ['White Mocha Latte', 100, 135], ['Mocha Latte', 100, 135],
+    ['Spanish Latte', 100, 135], ['Hazelnut Latte', 100, 135], ['Sea Salt Latte', 110, 145],
+    ['Dirty Matcha Latte', 130, 165], ['Biscoff Latte', 145, 180], ['Dirty Matcha Biscoff', 155, 190]
+  ];
+  coffee.forEach(([name, p16, p22, variants]) => {
+    (variants || ['Hot', 'Iced']).forEach(v => {
+      opts.push({ label: `${name} 16oz ${v}`, category: 'Coffee', size: '16oz', variant: v, price: p16 });
+      opts.push({ label: `${name} 22oz ${v}`, category: 'Coffee', size: '22oz', variant: v, price: p22 });
+    });
+  });
+  opts.push({ label: 'Dirty Horchata', category: 'Coffee', size: null, variant: null, price: 160 });
+
+  const milk = [
+    ['Milky Strawberry', 100, 135], ['Milky Blueberry', 100, 135], ['Milky Mango', 100, 135],
+    ['Milky Green Apple', 100, 135], ['Matcha Latte', 110, 145], ['Sea Salt Matcha', 120, 155],
+    ['Mango Matcha', 130, 165], ['Strawberry Matcha', 130, 165], ['Blueberry Matcha', 130, 165],
+    ['Biscoff Matcha', 145, 180], ['Choco Oreo', 120, 155]
+  ];
+  milk.forEach(([name, p16, p22]) => {
+    opts.push({ label: `${name} 16oz`, category: 'Milk Based', size: '16oz', variant: null, price: p16 });
+    opts.push({ label: `${name} 22oz`, category: 'Milk Based', size: '22oz', variant: null, price: p22 });
+  });
+  opts.push({ label: 'Horchata', category: 'Milk Based', size: null, variant: null, price: 150 });
+
+  ['Peach Mango', 'Peach', 'Mango', 'Lychee', 'Grapes', 'Green Apple', 'Strawberry', 'Blueberry', 'Lemon'].forEach(f => {
+    opts.push({ label: `${f} Regular`, category: 'Fruit Soda', size: null, variant: 'Regular', price: 50 });
+    opts.push({ label: `${f} Yogurt`, category: 'Fruit Soda', size: null, variant: 'Yogurt', price: 60 });
+  });
+
+  opts.push({ label: 'Lemonade Regular', category: 'Lemonade', size: null, variant: null, price: 50 });
+  opts.push({ label: 'Lemonade Large', category: 'Lemonade', size: null, variant: null, price: 80 });
+
+  ['Tapsilog', 'Bangsilog', 'Longsilog', 'Chicksilog', 'Cornsilog', 'Hotsilog', 'Hamsilog', 'Siosilog', 'Spamsilog'].forEach(n => {
+    opts.push({ label: n, category: 'Silog Meals', size: null, variant: null, price: 80 });
+  });
+
+  opts.push({ label: 'Chow Fan', category: 'Rice Bowl', size: null, variant: null, price: 75 });
+  opts.push({ label: 'Pork Chow Fan', category: 'Rice Bowl', size: null, variant: null, price: 75 });
+
+  const snacks = [['Siomai', 20], ['Fishball', 20], ['Kikiam', 20], ['Fries', 30], ['Nachos', 50],
+    ['Pancit Canton', 30], ['Beef Noodles', 30], ['Chicken Noodles', 30], ['Seafood Noodles', 35],
+    ['Jjampong', 35], ['Jin Ramen', 70], ['Arroz Caldo', 65]];
+  snacks.forEach(([n, p]) => opts.push({ label: n, category: 'Snacks', size: null, variant: null, price: p }));
+
+  [['Espresso', 15], ['Oat Milk', 30], ['Yakult', 10], ['Nata', 10], ['Boba', 15], ['Egg', 15]].forEach(([n, p]) => {
+    opts.push({ label: n, category: 'Add-ons', size: null, variant: null, price: p });
+  });
+
+  return opts;
+})();
+
+const CATEGORIES = ['Coffee', 'Milk Based', 'Fruit Soda', 'Lemonade', 'Silog Meals', 'Rice Bowl', 'Snacks', 'Add-ons'];
+
+/* ══════════════════════════════════════════════════════════════
+   SALES TAB
+   ══════════════════════════════════════════════════════════════ */
+
+async function loadSalesSummary() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const weekStart = getWeekStart(now);
+  const rangeStart = weekStart < monthStart ? weekStart : monthStart;
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const { data } = await insforge.database
+    .from('orders').select('*').gte('created_at', rangeStart.toISOString()).order('created_at', { ascending: false });
+
+  const all = data || [];
+  const notVoided = all.filter(o => o.status !== 'voided');
+
+  const todayOrders = notVoided.filter(o => new Date(o.created_at) >= todayStart);
+  const weekOrders = notVoided.filter(o => new Date(o.created_at) >= weekStart);
+  const monthOrders = notVoided.filter(o => new Date(o.created_at) >= monthStart);
+
+  document.getElementById('statTodaySales').textContent = money(todayOrders.reduce((s, o) => s + Number(o.total), 0));
+  document.getElementById('statTodayOrders').textContent = todayOrders.length;
+  document.getElementById('statWeekSales').textContent = money(weekOrders.reduce((s, o) => s + Number(o.total), 0));
+  document.getElementById('statMonthSales').textContent = money(monthOrders.reduce((s, o) => s + Number(o.total), 0));
+  document.getElementById('statMonthOrders').textContent = monthOrders.length;
+
+  // Sales by staff today
+  const byStaff = {};
+  todayOrders.forEach(o => {
+    byStaff[o.staff_name] ||= { orders: 0, total: 0 };
+    byStaff[o.staff_name].orders++;
+    byStaff[o.staff_name].total += Number(o.total);
+  });
+  const staffBody = document.getElementById('staffSalesToday');
+  staffBody.innerHTML = Object.keys(byStaff).length
+    ? Object.entries(byStaff).map(([name, v]) => `<tr><td>${escapeHtml(name)}</td><td>${v.orders}</td><td>${money(v.total)}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="empty-state">No sales yet today.</td></tr>';
+
+  // Best sellers today
+  if (todayOrders.length) {
+    const { data: items } = await insforge.database.from('order_items').select('*').in('order_id', todayOrders.map(o => o.id));
+    const byItem = {};
+    (items || []).forEach(it => {
+      byItem[it.item_name] ||= { qty: 0, revenue: 0 };
+      byItem[it.item_name].qty += it.quantity;
+      byItem[it.item_name].revenue += Number(it.line_total);
+    });
+    const top5 = Object.entries(byItem).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
+    document.getElementById('bestSellersToday').innerHTML = top5.length
+      ? top5.map(([name, v]) => `<tr><td>${escapeHtml(name)}</td><td>${v.qty}</td><td>${money(v.revenue)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty-state">No sales yet today.</td></tr>';
+  } else {
+    document.getElementById('bestSellersToday').innerHTML = '<tr><td colspan="3" class="empty-state">No sales yet today.</td></tr>';
+  }
+}
+
+document.getElementById('salesRangeType').addEventListener('change', (e) => {
+  const isCustom = e.target.value === 'custom';
+  document.getElementById('salesCustomStartWrap').style.display = isCustom ? '' : 'none';
+  document.getElementById('salesCustomEndWrap').style.display = isCustom ? '' : 'none';
+});
+
+let currentSalesOrders = [];
+
+let currentSalesRange = null;
+
+async function loadSalesHistory() {
+  const tbody = document.getElementById('salesHistoryBody');
+  tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading…</td></tr>';
+
+  const rangeType = document.getElementById('salesRangeType').value;
+  const { start, end } = rangeForType(rangeType, document.getElementById('salesCustomStart').value, document.getElementById('salesCustomEnd').value);
+  currentSalesRange = { start, end };
+
+  const { data } = await insforge.database
+    .from('orders').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString())
+    .order('created_at', { ascending: false });
+
+  currentSalesOrders = data || [];
+
+  if (currentSalesOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No orders in this range.</td></tr>';
+    document.getElementById('categoryBreakdown').innerHTML = '<tr><td colspan="3" class="empty-state">No data.</td></tr>';
+    return;
+  }
+
+  const orderIds = currentSalesOrders.map(o => o.id);
+  const { data: allItems } = await insforge.database.from('order_items').select('*').in('order_id', orderIds);
+  const itemsByOrder = {};
+  (allItems || []).forEach(it => { (itemsByOrder[it.order_id] ||= []).push(it); });
+
+  tbody.innerHTML = '';
+  currentSalesOrders.forEach(order => {
+    const items = itemsByOrder[order.id] || [];
+    const itemsSummary = items.map(it => `${it.quantity}× ${it.item_name}`).join(', ');
+    const tr = document.createElement('tr');
+    tr.className = 'clickable';
+    tr.innerHTML = `
+      <td>${escapeHtml(order.order_number)}</td>
+      <td>${fmtDateTime(order.created_at)}</td>
+      <td>${escapeHtml(order.customer_name)}</td>
+      <td>${escapeHtml(order.staff_name)}</td>
+      <td>${typeLabel(order.order_type)}</td>
+      <td style="white-space:normal; max-width:220px;">${escapeHtml(itemsSummary)}</td>
+      <td>${money(order.discount_amount)}</td>
+      <td>${money(order.total)}</td>
+      <td>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</td>
+      <td><span class="badge ${order.status}">${order.status}</span></td>`;
+    tr.addEventListener('click', () => openOrderModal(order, items));
+    tbody.appendChild(tr);
+  });
+
+  // Category breakdown
+  const byCat = {};
+  CATEGORIES.forEach(c => byCat[c] = { qty: 0, revenue: 0 });
+  (allItems || []).forEach(it => {
+    if (!byCat[it.category]) byCat[it.category] = { qty: 0, revenue: 0 };
+    byCat[it.category].qty += it.quantity;
+    byCat[it.category].revenue += Number(it.line_total);
+  });
+  document.getElementById('categoryBreakdown').innerHTML = Object.entries(byCat)
+    .map(([cat, v]) => `<tr><td>${escapeHtml(cat)}</td><td>${v.qty}</td><td>${money(v.revenue)}</td></tr>`).join('');
+}
+
+document.getElementById('applySalesFilterBtn').addEventListener('click', loadSalesHistory);
+
+function formatItemsForCsv(items) {
+  return items.map(it => {
+    const parts = [it.size, it.variant, ...(it.addons || []).map(a => '+' + a.name)].filter(Boolean);
+    return `${it.quantity}x ${it.item_name}${parts.length ? ' (' + parts.join(', ') + ')' : ''}`;
+  }).join(', ');
+}
+function statusLabel(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function csvDateRangeTag(start, end) {
+  return `${dateStr(start)}_to_${dateStr(new Date(end.getTime() - 1))}`;
+}
+
+document.getElementById('exportSalesCsvBtn').addEventListener('click', async () => {
+  if (currentSalesOrders.length === 0) return;
+  const orderIds = currentSalesOrders.map(o => o.id);
+  const { data: allItems } = await insforge.database.from('order_items').select('*').in('order_id', orderIds);
+  const itemsByOrder = {};
+  (allItems || []).forEach(it => { (itemsByOrder[it.order_id] ||= []).push(it); });
+
+  const headers = ['Order Number', 'Date', 'Time', 'Staff Name', 'Customer Name', 'Order Type', 'Items', 'Subtotal', 'Discount', 'Total', 'Original Total', 'Payment Method', 'GCash Reference', 'Status'];
+  const rows = currentSalesOrders.map(o => {
+    const items = formatItemsForCsv(itemsByOrder[o.id] || []);
+    const d = new Date(o.created_at);
+    return [o.order_number, dateStr(d), d.toLocaleTimeString('en-PH'), o.staff_name, o.customer_name, typeLabel(o.order_type),
+      items, Number(o.subtotal).toFixed(2), Number(o.discount_amount).toFixed(2), Number(o.total).toFixed(2),
+      o.original_total != null ? Number(o.original_total).toFixed(2) : '',
+      o.payment_method === 'cash' ? 'Cash' : 'GCash', o.gcash_reference || '', statusLabel(o.status)];
+  });
+  const rangeTag = currentSalesRange ? csvDateRangeTag(currentSalesRange.start, currentSalesRange.end) : dateStr(new Date());
+  downloadCSV(`CupOfJoy_Sales_${rangeTag}.csv`, headers, rows);
+});
+
+/* ── Order detail / edit / void / reprint ── */
+const orderModal = document.getElementById('orderModal');
+
+function openOrderModal(order, items) {
+  const body = document.getElementById('orderModalBody');
+  document.getElementById('orderModalTitle').textContent = `${order.order_number} — ${order.customer_name}`;
+
+  let editHistoryHtml = '';
+  if (order.edited_at) editHistoryHtml += `<div class="receipt-sub">Edited by ${escapeHtml(order.edited_by || '—')} on ${fmtDateTime(order.edited_at)}${order.edited_notes ? ' — ' + escapeHtml(order.edited_notes) : ''}${order.original_total != null ? ` (original total ${money(order.original_total)})` : ''}</div>`;
+  if (order.voided_at) editHistoryHtml += `<div class="receipt-sub">Voided by ${escapeHtml(order.voided_by || '—')} on ${fmtDateTime(order.voided_at)}</div>`;
+
+  let html = `
+    <div class="summary-row"><span>Date/Time</span><span>${fmtDateTime(order.created_at)}</span></div>
+    <div class="summary-row"><span>Staff</span><span>${escapeHtml(order.staff_name)}</span></div>
+    <div class="summary-row"><span>Order Type</span><span>${typeLabel(order.order_type)}</span></div>
+    <div class="summary-row"><span>Status</span><span><span class="badge ${order.status}">${order.status}</span></span></div>
+    ${editHistoryHtml}
+    <hr style="border:none;border-top:1px dashed #eee3c8;margin:.7rem 0;">`;
+  items.forEach(it => {
+    const meta = [it.size, it.variant].filter(Boolean).join(' · ');
+    html += `<div class="summary-row"><span>${it.quantity}× ${escapeHtml(it.item_name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''}</span><span>${money(it.line_total)}</span></div>`;
+    if (it.addons?.length) html += `<div class="receipt-sub">+ ${it.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+    if (it.notes) html += `<div class="receipt-sub">"${escapeHtml(it.notes)}"</div>`;
+  });
+  html += `<div class="summary-row" style="margin-top:.5rem;"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
+    <div class="summary-row"><span>Discount</span><span>-${money(order.discount_amount)}</span></div>
+    <div class="summary-row total"><span>Total</span><span>${money(order.total)}</span></div>
+    <div class="summary-row"><span>Payment</span><span>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</span></div>`;
+
+  if (order.status !== 'voided') {
+    html += `
+      <div class="btn-row">
+        <button class="btn btn-outline btn-sm" id="modalEditBtn" type="button">Edit Order</button>
+        <button class="btn btn-red btn-sm" id="modalVoidBtn" type="button">Void</button>
+        <button class="btn btn-dark btn-sm" id="modalReprintBtn" type="button">Reprint Receipt</button>
+      </div>`;
+  } else {
+    html += `<div class="btn-row"><button class="btn btn-dark btn-sm" id="modalReprintBtn" type="button">Reprint Receipt</button></div>`;
+  }
+
+  body.innerHTML = html;
+  orderModal.classList.add('show');
+
+  document.getElementById('modalReprintBtn').addEventListener('click', () => showReceipt(order, items));
+  if (order.status !== 'voided') {
+    document.getElementById('modalEditBtn').addEventListener('click', () => openEditOrderForm(order, items));
+    document.getElementById('modalVoidBtn').addEventListener('click', () => openVoidConfirm(order.id));
+  }
+}
+document.getElementById('orderModalCloseBtn').addEventListener('click', () => orderModal.classList.remove('show'));
+
+/* ── Edit order (owner, any order) ── */
+let editOrderTarget = null;
+let editOrderCart = [];
+
+function editLineTotal(ci) {
+  const addonsSum = (ci.addons || []).reduce((s, a) => s + a.price, 0);
+  return (Number(ci.unit_price) + addonsSum) * ci.quantity;
+}
+
+function openEditOrderForm(order, items) {
+  editOrderTarget = order;
+  editOrderCart = items.map(it => ({ ...it, addons: it.addons || [] }));
+
+  renderEditOrderForm();
+}
+
+function renderEditOrderForm() {
+  const body = document.getElementById('orderModalBody');
+  document.getElementById('orderModalTitle').textContent = `Edit ${editOrderTarget.order_number}`;
+
+  const subtotal = editOrderCart.reduce((s, ci) => s + editLineTotal(ci), 0);
+
+  let html = `<div id="editItemsList"></div>
+    <div class="add-item-row">
+      <select id="editAddItemSelect">${FLAT_MENU.map((m, i) => `<option value="${i}">${escapeHtml(m.label)} — ${money(m.price)}</option>`).join('')}</select>
+      <input type="number" id="editAddItemQty" value="1" min="1" />
+      <button class="btn btn-outline btn-sm" id="editAddItemBtn" type="button">Add Item</button>
+    </div>
+    <div style="display:flex; gap:.6rem; margin-top:1rem; align-items:end;">
+      <div><label for="editDiscountType">Discount</label>
+        <select id="editDiscountType">
+          <option value="none" ${editOrderTarget.discount_type === 'none' ? 'selected' : ''}>None</option>
+          <option value="fixed" ${editOrderTarget.discount_type === 'fixed' ? 'selected' : ''}>Fixed ₱</option>
+          <option value="percentage" ${editOrderTarget.discount_type === 'percentage' ? 'selected' : ''}>Percentage %</option>
+        </select>
+      </div>
+      <div><label for="editDiscountValue">Value</label>
+        <input type="number" id="editDiscountValue" min="0" step="any" value="${editOrderTarget.discount_type === 'percentage' && editOrderTarget.subtotal > 0 ? ((editOrderTarget.discount_amount / editOrderTarget.subtotal) * 100).toFixed(2) : editOrderTarget.discount_amount}" style="width:100px;" />
+      </div>
+    </div>
+    <div class="summary-row" style="margin-top:.8rem;"><span>Subtotal</span><span id="editSubtotalOut">${money(subtotal)}</span></div>
+    <div class="summary-row"><span>Discount</span><span id="editDiscountOut">-₱0.00</span></div>
+    <div class="summary-row total"><span>Total</span><span id="editTotalOut">${money(subtotal)}</span></div>
+    <div class="msg" id="editOrderMsg"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="editOrderCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-dark" id="editOrderSaveBtn" type="button">Save Changes</button>
+    </div>`;
+  body.innerHTML = html;
+
+  renderEditItemsList();
+  computeEditTotals();
+
+  document.getElementById('editAddItemBtn').addEventListener('click', () => {
+    const idx = Number(document.getElementById('editAddItemSelect').value);
+    const qty = Math.max(1, Number(document.getElementById('editAddItemQty').value) || 1);
+    const m = FLAT_MENU[idx];
+    editOrderCart.push({ item_name: m.label, category: m.category, size: m.size, variant: m.variant, addons: [], notes: null, unit_price: m.price, quantity: qty });
+    renderEditItemsList();
+    computeEditTotals();
+  });
+  document.getElementById('editDiscountType').addEventListener('change', computeEditTotals);
+  document.getElementById('editDiscountValue').addEventListener('input', computeEditTotals);
+  document.getElementById('editOrderCancelBtn').addEventListener('click', () => openOrderModal(editOrderTarget, editOrderCart));
+  document.getElementById('editOrderSaveBtn').addEventListener('click', saveEditedOrder);
+}
+
+function renderEditItemsList() {
+  const list = document.getElementById('editItemsList');
+  list.innerHTML = '';
+  editOrderCart.forEach((ci, idx) => {
+    const meta = [ci.size, ci.variant].filter(Boolean).join(' · ');
+    const row = document.createElement('div');
+    row.className = 'edit-item-row';
+    row.innerHTML = `
+      <span>${escapeHtml(ci.item_name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''} — ${money(ci.unit_price)}</span>
+      <div class="qty-group">
+        <button class="qty-btn" data-action="dec">−</button>
+        <span>${ci.quantity}</span>
+        <button class="qty-btn" data-action="inc">+</button>
+        <span style="min-width:70px; text-align:right;">${money(editLineTotal(ci))}</span>
+        <button class="btn btn-red btn-sm" data-action="remove">Remove</button>
+      </div>`;
+    row.querySelector('[data-action="dec"]').addEventListener('click', () => { ci.quantity = Math.max(1, ci.quantity - 1); renderEditItemsList(); computeEditTotals(); });
+    row.querySelector('[data-action="inc"]').addEventListener('click', () => { ci.quantity++; renderEditItemsList(); computeEditTotals(); });
+    row.querySelector('[data-action="remove"]').addEventListener('click', () => { editOrderCart.splice(idx, 1); renderEditItemsList(); computeEditTotals(); });
+    list.appendChild(row);
+  });
+  if (editOrderCart.length === 0) list.innerHTML = '<div class="empty-state">No items. Add at least one item.</div>';
+}
+
+function computeEditTotals() {
+  const subtotal = editOrderCart.reduce((s, ci) => s + editLineTotal(ci), 0);
+  const type = document.getElementById('editDiscountType').value;
+  const val = parseFloat(document.getElementById('editDiscountValue').value) || 0;
+  let discount = 0;
+  if (type === 'fixed') discount = Math.min(val, subtotal);
+  else if (type === 'percentage') discount = Math.min(subtotal * (val / 100), subtotal);
+  document.getElementById('editSubtotalOut').textContent = money(subtotal);
+  document.getElementById('editDiscountOut').textContent = '-' + money(discount);
+  document.getElementById('editTotalOut').textContent = money(subtotal - discount);
+}
+
+async function saveEditedOrder() {
+  const msg = document.getElementById('editOrderMsg');
+  msg.className = 'msg';
+  if (editOrderCart.length === 0) { msg.textContent = 'Order must have at least one item'; msg.className = 'msg show error'; return; }
+
+  const subtotal = editOrderCart.reduce((s, ci) => s + editLineTotal(ci), 0);
+  const type = document.getElementById('editDiscountType').value;
+  const val = parseFloat(document.getElementById('editDiscountValue').value) || 0;
+  let discount = 0;
+  if (type === 'fixed') discount = Math.min(val, subtotal);
+  else if (type === 'percentage') discount = Math.min(subtotal * (val / 100), subtotal);
+  const total = subtotal - discount;
+
+  const updates = {
+    subtotal, discount_amount: discount, discount_type: type, total,
+    status: 'edited', edited_by: 'Owner', edited_at: new Date().toISOString(), edited_notes: 'Edited by owner'
+  };
+  if (editOrderTarget.payment_method === 'cash' && editOrderTarget.cash_received != null) {
+    updates.change_given = Number(editOrderTarget.cash_received) - total;
+  }
+  // Only capture the pre-edit total the first time an order is edited, so
+  // repeated edits don't overwrite the true original with an already-edited value.
+  if (editOrderTarget.original_total == null) updates.original_total = Number(editOrderTarget.total);
+
+  const { error: updErr } = await insforge.database.from('orders').update(updates).eq('id', editOrderTarget.id);
+  if (updErr) { msg.textContent = 'Failed to save changes'; msg.className = 'msg show error'; return; }
+
+  await insforge.database.from('order_items').delete().eq('order_id', editOrderTarget.id);
+  const itemRows = editOrderCart.map(ci => ({
+    order_id: editOrderTarget.id, item_name: ci.item_name, category: ci.category, size: ci.size, variant: ci.variant,
+    addons: ci.addons || [], notes: ci.notes || null, unit_price: ci.unit_price, quantity: ci.quantity, line_total: editLineTotal(ci)
+  }));
+  if (itemRows.length) await insforge.database.from('order_items').insert(itemRows);
+
+  orderModal.classList.remove('show');
+  loadSalesHistory();
+  loadSalesSummary();
+}
+
+/* ── Void ── */
+const voidModal = document.getElementById('voidModal');
+let voidTargetId = null;
+function openVoidConfirm(orderId) { voidTargetId = orderId; voidModal.classList.add('show'); }
+document.getElementById('voidCancelBtn').addEventListener('click', () => voidModal.classList.remove('show'));
+document.getElementById('voidConfirmBtn').addEventListener('click', async () => {
+  if (!voidTargetId) return;
+  await insforge.database.from('orders').update({ status: 'voided', voided_by: 'Owner', voided_at: new Date().toISOString() }).eq('id', voidTargetId);
+  voidModal.classList.remove('show');
+  orderModal.classList.remove('show');
+  loadSalesHistory();
+  loadSalesSummary();
+});
+
+/* ── Receipt ── */
+const receiptModal = document.getElementById('receiptModal');
+function showReceipt(order, items) {
+  const ts = fmtDateTime(order.created_at);
+  let html = `
+    <div class="r-header"><div class="logo-text">Cup of <span>Joy</span></div></div>
+    <div class="r-meta">${escapeHtml(order.order_number)}<br>${ts}</div>
+    <div class="receipt-line"><span>Staff</span><span>${escapeHtml(order.staff_name)}</span></div>
+    <div class="receipt-line"><span>Customer</span><span>${escapeHtml(order.customer_name)}</span></div>
+    <div class="receipt-line"><span>Order Type</span><span>${typeLabel(order.order_type)}</span></div>
+    <hr>`;
+  items.forEach(it => {
+    const meta = [it.size, it.variant].filter(Boolean).join(' · ');
+    html += `<div class="receipt-line"><span>${it.quantity}× ${escapeHtml(it.item_name)}</span><span>${money(it.line_total)}</span></div>`;
+    if (meta) html += `<div class="receipt-sub">${escapeHtml(meta)}</div>`;
+    if (it.addons?.length) html += `<div class="receipt-sub">+ ${it.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+    if (it.notes) html += `<div class="receipt-sub">"${escapeHtml(it.notes)}"</div>`;
+  });
+  html += `<hr>
+    <div class="receipt-line"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
+    <div class="receipt-line"><span>Discount</span><span>-${money(order.discount_amount)}</span></div>
+    <div class="receipt-line" style="font-size:1rem;"><span>Total</span><span>${money(order.total)}</span></div>
+    <hr>
+    <div class="receipt-line"><span>Payment</span><span>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</span></div>`;
+  if (order.payment_method === 'cash') {
+    html += `<div class="receipt-line"><span>Received</span><span>${money(order.cash_received)}</span></div>
+      <div class="receipt-line"><span>Change</span><span>${money(order.change_given)}</span></div>`;
+  } else {
+    html += `<div class="receipt-line"><span>Reference #</span><span>${escapeHtml(order.gcash_reference || '')}</span></div>`;
+  }
+  html += `<div class="receipt-thanks">Thank you for choosing Cup of Joy! ☕💛</div>`;
+  document.getElementById('receiptBox').innerHTML = html;
+  receiptModal.classList.add('show');
+}
+document.getElementById('receiptCloseBtn').addEventListener('click', () => receiptModal.classList.remove('show'));
+document.getElementById('receiptPrintBtn').addEventListener('click', () => window.print());
+
+/* ══════════════════════════════════════════════════════════════
+   STAFF AND SHIFTS TAB
+   ══════════════════════════════════════════════════════════════ */
+
+async function loadStaffStatus() {
+  const tbody = document.getElementById('staffStatusBody');
+  const { data: staffList } = await insforge.database.from('staff').select('*').eq('status', 'active').order('name');
+  const { data: openShifts } = await insforge.database.from('shift_logs').select('*').is('clock_out_time', null);
+
+  const openByStaff = {};
+  (openShifts || []).forEach(s => { openByStaff[s.staff_id] = s; });
+
+  tbody.innerHTML = (staffList || []).map(s => {
+    const open = openByStaff[s.id];
+    const roleLabel = s.role === 'full_time' ? 'Full Time' : 'Part Time';
+    if (open) {
+      const mins = (Date.now() - new Date(open.clock_in_time).getTime()) / 60000;
+      return `<tr><td>${escapeHtml(s.name)}</td><td>${roleLabel}</td>
+        <td><span class="status-dot in"></span>Clocked In</td>
+        <td>Since ${fmtTime(open.clock_in_time)} · ${fmtDurationMin(mins)}</td></tr>`;
+    }
+    return `<tr><td>${escapeHtml(s.name)}</td><td>${roleLabel}</td><td><span class="status-dot out"></span>Off Duty</td><td>—</td></tr>`;
+  }).join('') || '<tr><td colspan="4" class="empty-state">No active staff.</td></tr>';
+}
+
+document.getElementById('shiftRangeType').addEventListener('change', (e) => {
+  const isCustom = e.target.value === 'custom';
+  document.getElementById('shiftCustomStartWrap').style.display = isCustom ? '' : 'none';
+  document.getElementById('shiftCustomEndWrap').style.display = isCustom ? '' : 'none';
+});
+
+let currentShiftRows = [];
+let currentShiftRange = null;
+
+async function loadShiftLog() {
+  const tbody = document.getElementById('shiftLogBody');
+  tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading…</td></tr>';
+
+  const rangeType = document.getElementById('shiftRangeType').value;
+  const { start, end } = rangeForType(rangeType, document.getElementById('shiftCustomStart').value, document.getElementById('shiftCustomEnd').value);
+  currentShiftRange = { start, end };
+
+  const { data } = await insforge.database
+    .from('shift_logs').select('*').gte('date', dateStr(start)).lte('date', dateStr(new Date(end.getTime() - 1)))
+    .order('clock_in_time', { ascending: false });
+
+  const rows = data || [];
+  currentShiftRows = rows;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No shift entries in this range.</td></tr>';
+    document.getElementById('shiftTotalsBody').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  const totalsByStaff = {};
+  rows.forEach(row => {
+    const dur = row.duration_minutes != null ? row.duration_minutes
+      : (row.clock_out_time ? (new Date(row.clock_out_time) - new Date(row.clock_in_time)) / 60000 : (Date.now() - new Date(row.clock_in_time).getTime()) / 60000);
+    totalsByStaff[row.staff_name] = (totalsByStaff[row.staff_name] || 0) + dur;
+
+    const tr = document.createElement('tr');
+    const distanceLabel = row.clock_in_distance != null ? `${Math.round(row.clock_in_distance)}m` : '—';
+    tr.innerHTML = `
+      <td>${escapeHtml(row.staff_name)}</td>
+      <td>${row.date}</td>
+      <td>${fmtTime(row.clock_in_time)}</td>
+      <td>${row.clock_out_time ? fmtTime(row.clock_out_time) : '<em>Ongoing</em>'}</td>
+      <td>${fmtDurationMin(dur)}</td>
+      <td><span class="badge ${row.method}">${row.method === 'manual' ? 'Manual' : 'Auto'}</span></td>
+      <td>${distanceLabel}</td>
+      <td style="white-space:normal; max-width:160px;">${escapeHtml(row.notes || '—')}</td>
+      <td></td>`;
+    const actionsTd = tr.lastElementChild;
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-outline btn-sm'; editBtn.textContent = 'Edit'; editBtn.type = 'button';
+    editBtn.addEventListener('click', () => openShiftEditModal(row));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-red btn-sm'; delBtn.textContent = 'Delete'; delBtn.type = 'button';
+    delBtn.style.marginLeft = '.3rem';
+    delBtn.addEventListener('click', () => openShiftDeleteConfirm(row.id));
+    actionsTd.appendChild(editBtn);
+    actionsTd.appendChild(delBtn);
+
+    if (!row.clock_out_time) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'btn btn-dark btn-sm'; closeBtn.textContent = 'Close Shift'; closeBtn.type = 'button';
+      closeBtn.style.marginLeft = '.3rem';
+      closeBtn.addEventListener('click', () => closeShiftNow(row));
+      actionsTd.appendChild(closeBtn);
+    } else {
+      const reopenBtn = document.createElement('button');
+      reopenBtn.className = 'btn btn-outline btn-sm'; reopenBtn.textContent = 'Reopen'; reopenBtn.type = 'button';
+      reopenBtn.style.marginLeft = '.3rem';
+      reopenBtn.addEventListener('click', () => reopenShift(row));
+      actionsTd.appendChild(reopenBtn);
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('shiftTotalsBody').innerHTML = Object.entries(totalsByStaff)
+    .map(([name, mins]) => `<tr><td>${escapeHtml(name)}</td><td>${fmtDurationMin(mins)}</td></tr>`).join('');
+}
+
+document.getElementById('applyShiftFilterBtn').addEventListener('click', loadShiftLog);
+
+document.getElementById('exportShiftCsvBtn').addEventListener('click', () => {
+  if (currentShiftRows.length === 0) return;
+  const headers = ['Staff Name', 'Date', 'Clock In', 'Clock Out', 'Duration', 'Method', 'Distance from Shop', 'Notes'];
+  const rows = currentShiftRows.map(row => {
+    const dur = row.duration_minutes != null ? row.duration_minutes
+      : (row.clock_out_time ? (new Date(row.clock_out_time) - new Date(row.clock_in_time)) / 60000 : (Date.now() - new Date(row.clock_in_time).getTime()) / 60000);
+    return [
+      row.staff_name, row.date, fmtTime(row.clock_in_time), row.clock_out_time ? fmtTime(row.clock_out_time) : 'Ongoing',
+      fmtDurationMin(dur), row.method === 'manual' ? 'Manual' : 'Auto',
+      row.clock_in_distance != null ? `${Math.round(row.clock_in_distance)}m` : '', row.notes || ''
+    ];
+  });
+  const rangeTag = currentShiftRange ? csvDateRangeTag(currentShiftRange.start, currentShiftRange.end) : dateStr(new Date());
+  downloadCSV(`CupOfJoy_ShiftLog_${rangeTag}.csv`, headers, rows);
+});
+
+async function closeShiftNow(row) {
+  const now = new Date();
+  const duration = Math.round((now.getTime() - new Date(row.clock_in_time).getTime()) / 60000);
+  await insforge.database.from('shift_logs').update({
+    clock_out_time: now.toISOString(), duration_minutes: duration, method: 'manual',
+    edited_by: 'Owner', edited_at: now.toISOString()
+  }).eq('id', row.id);
+  loadShiftLog();
+  loadStaffStatus();
+}
+
+async function reopenShift(row) {
+  await insforge.database.from('shift_logs').update({
+    clock_out_time: null, duration_minutes: null, method: 'manual',
+    edited_by: 'Owner', edited_at: new Date().toISOString()
+  }).eq('id', row.id);
+  loadShiftLog();
+  loadStaffStatus();
+}
+
+/* ── Shift edit modal ── */
+const shiftEditModal = document.getElementById('shiftEditModal');
+let shiftEditTarget = null;
+function toLocalTimeInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+function combineDateTime(dStr, tStr) {
+  if (!dStr || !tStr) return null;
+  return new Date(`${dStr}T${tStr}:00`).toISOString();
+}
+function openShiftEditModal(row) {
+  shiftEditTarget = row;
+  document.getElementById('shiftEditMsg').className = 'msg';
+  document.getElementById('shiftEditDate').value = row.date;
+  document.getElementById('shiftEditIn').value = toLocalTimeInput(row.clock_in_time);
+  document.getElementById('shiftEditOut').value = toLocalTimeInput(row.clock_out_time);
+  document.getElementById('shiftEditNote').value = row.notes || '';
+  shiftEditModal.classList.add('show');
+}
+document.getElementById('shiftEditCancelBtn').addEventListener('click', () => shiftEditModal.classList.remove('show'));
+document.getElementById('shiftEditSaveBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('shiftEditMsg');
+  msg.className = 'msg';
+  const date = document.getElementById('shiftEditDate').value;
+  const inT = document.getElementById('shiftEditIn').value;
+  const outT = document.getElementById('shiftEditOut').value;
+  const note = document.getElementById('shiftEditNote').value.trim();
+  if (!date || !inT) { msg.textContent = 'Date and clock in time are required'; msg.className = 'msg show error'; return; }
+
+  const clockIn = combineDateTime(date, inT);
+  const clockOut = outT ? combineDateTime(date, outT) : null;
+  const duration = clockOut ? Math.round((new Date(clockOut) - new Date(clockIn)) / 60000) : null;
+
+  await insforge.database.from('shift_logs').update({
+    date, clock_in_time: clockIn, clock_out_time: clockOut, duration_minutes: duration,
+    notes: note || null, method: 'manual', edited_by: 'Owner', edited_at: new Date().toISOString()
+  }).eq('id', shiftEditTarget.id);
+
+  shiftEditModal.classList.remove('show');
+  loadShiftLog();
+  loadStaffStatus();
+});
+
+/* ── Shift delete ── */
+const shiftDeleteModal = document.getElementById('shiftDeleteModal');
+let shiftDeleteTargetId = null;
+function openShiftDeleteConfirm(id) { shiftDeleteTargetId = id; shiftDeleteModal.classList.add('show'); }
+document.getElementById('shiftDeleteCancelBtn').addEventListener('click', () => shiftDeleteModal.classList.remove('show'));
+document.getElementById('shiftDeleteConfirmBtn').addEventListener('click', async () => {
+  if (!shiftDeleteTargetId) return;
+  await insforge.database.from('shift_logs').delete().eq('id', shiftDeleteTargetId);
+  shiftDeleteModal.classList.remove('show');
+  loadShiftLog();
+  loadStaffStatus();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   SALARY TAB
+   ══════════════════════════════════════════════════════════════ */
+const DAILY_RATE = 300;
+
+function getPayPeriod(date) {
+  const y = date.getFullYear(), m = date.getMonth(), day = date.getDate();
+  if (day <= 15) return { start: new Date(y, m, 1), end: new Date(y, m, 15), paymentDate: new Date(y, m, 16) };
+  return { start: new Date(y, m, 16), end: new Date(y, m + 1, 0), paymentDate: new Date(y, m + 1, 1) };
+}
+function prevPayPeriod(period) {
+  const d = new Date(period.start); d.setDate(d.getDate() - 1);
+  return getPayPeriod(d);
+}
+function periodLabel(period) { return `${fmtDateShort(period.start)} – ${fmtDateLong(period.end)}`; }
+
+let payPeriods = [];
+function buildPeriodOptions() {
+  const sel = document.getElementById('periodSelect');
+  sel.innerHTML = '';
+  let period = getPayPeriod(new Date());
+  payPeriods = [period];
+  for (let i = 0; i < 11; i++) { period = prevPayPeriod(period); payPeriods.push(period); }
+  payPeriods.forEach((p, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${periodLabel(p)} (paid ${fmtDateLong(p.paymentDate)})`;
+    sel.appendChild(opt);
+  });
+}
+
+let currentSalaryRows = [];
+
+async function loadSalaryTab() {
+  const idx = Number(document.getElementById('periodSelect').value || 0);
+  const period = payPeriods[idx];
+  const tbody = document.getElementById('salaryBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+
+  const { data: staffList } = await insforge.database.from('staff').select('*').eq('status', 'active').order('name');
+  const { data: shiftRows } = await insforge.database.from('shift_logs').select('*')
+    .gte('date', dateStr(period.start)).lte('date', dateStr(period.end));
+
+  const byStaff = {};
+  (shiftRows || []).forEach(r => { (byStaff[r.staff_id] ||= []).push(r); });
+
+  currentSalaryRows = (staffList || []).map(s => {
+    const rows = byStaff[s.id] || [];
+    // Only shifts with both a clock-in AND a clock-out count as a worked day —
+    // an open/incomplete shift isn't paid until it's actually closed. The
+    // (unfiltered) shiftRows are kept for the day-by-day detail view.
+    const dates = Array.from(new Set(rows.filter(r => r.clock_out_time).map(r => r.date))).sort();
+    return { staff: s, dates, daysWorked: dates.length, totalPay: dates.length * DAILY_RATE, shiftRows: rows };
+  });
+
+  let grandTotal = 0;
+  tbody.innerHTML = currentSalaryRows.map((row, i) => {
+    grandTotal += row.totalPay;
+    return `<tr class="clickable" data-idx="${i}">
+      <td>${escapeHtml(row.staff.name)}</td>
+      <td>${row.staff.role === 'full_time' ? 'Full Time' : 'Part Time'}</td>
+      <td>${row.daysWorked}</td>
+      <td>${money(DAILY_RATE)}</td>
+      <td>${money(row.totalPay)}</td>
+      <td>${fmtDateLong(period.paymentDate)}</td>
+      <td><button class="btn btn-outline btn-sm" data-action="payslip">PDF</button></td>
+    </tr>
+    <tr class="detail-row" id="salary-detail-${i}" style="display:none;"><td colspan="7"><div class="detail-box" id="salary-detail-body-${i}"></div></td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty-state">No active staff.</td></tr>';
+
+  document.getElementById('salaryGrandTotal').textContent = money(grandTotal);
+
+  currentSalaryRows.forEach((row, i) => {
+    const tr = tbody.querySelector(`tr[data-idx="${i}"]`);
+    tr.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="payslip"]')) return;
+      const detail = document.getElementById(`salary-detail-${i}`);
+      const showing = detail.style.display !== 'none';
+      detail.style.display = showing ? 'none' : '';
+      if (!showing) {
+        const detailBody = document.getElementById(`salary-detail-body-${i}`);
+        if (row.shiftRows.length === 0) {
+          detailBody.innerHTML = '<div class="empty-state">No shifts this period.</div>';
+        } else {
+          detailBody.innerHTML = `<table><thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Status</th></tr></thead><tbody>${
+            row.shiftRows.sort((a, b) => a.clock_in_time.localeCompare(b.clock_in_time)).map(r => {
+              const dur = r.duration_minutes != null ? r.duration_minutes : (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000 : 0);
+              return `<tr><td>${r.date}</td><td>${fmtTime(r.clock_in_time)}</td><td>${r.clock_out_time ? fmtTime(r.clock_out_time) : 'Ongoing'}</td><td>${fmtDurationMin(dur)}</td><td><span class="badge ${r.method === 'manual' ? 'manual' : 'present'}">${r.method === 'manual' ? 'Manual' : 'Present'}</span></td></tr>`;
+            }).join('')
+          }</tbody></table>`;
+        }
+      }
+    });
+    tr.querySelector('[data-action="payslip"]').addEventListener('click', () => {
+      const roleLabel = row.staff.role === 'full_time' ? 'Full Time' : 'Part Time';
+      buildPayslip(row.staff.name, roleLabel, period, row);
+    });
+  });
+}
+
+document.getElementById('periodSelect').addEventListener('change', loadSalaryTab);
+
+document.getElementById('exportSalaryCsvBtn').addEventListener('click', () => {
+  const idx = Number(document.getElementById('periodSelect').value || 0);
+  const period = payPeriods[idx];
+  const headers = ['Staff Name', 'Role', 'Period Start', 'Period End', 'Payment Date', 'Days Worked', 'Daily Rate', 'Total Pay'];
+  const rows = currentSalaryRows.map(r => [
+    r.staff.name, r.staff.role === 'full_time' ? 'Full Time' : 'Part Time',
+    dateStr(period.start), dateStr(period.end), dateStr(period.paymentDate),
+    r.daysWorked, DAILY_RATE.toFixed(2), r.totalPay.toFixed(2)
+  ]);
+  const grandTotal = currentSalaryRows.reduce((s, r) => s + r.totalPay, 0);
+  rows.push(['Grand Total', '', '', '', '', currentSalaryRows.reduce((s, r) => s + r.daysWorked, 0), '', grandTotal.toFixed(2)]);
+  const periodTag = `${dateStr(period.start)}_to_${dateStr(period.end)}`;
+  downloadCSV(`CupOfJoy_Salary_${periodTag}.csv`, headers, rows);
+});
+
+function fmtTimeShort(iso) {
+  return iso ? new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) : '—';
+}
+function fmtHM(mins) {
+  if (!mins) return '0h 0m';
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return `${h}h ${m}m`;
+}
+
+/* Identical payslip builder to staff-dashboard.html — keep both in sync. */
+function buildPayslip(staffName, staffRoleLabel, period, stats) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const marginX = 16;
+  const pageWidth = 210;
+  const contentWidth = pageWidth - marginX * 2;
+  const brown = [61, 32, 0];
+  const yellow = [250, 218, 42];
+  const cream = [255, 253, 240];
+
+  /* Header */
+  doc.setTextColor(...brown);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(26);
+  doc.text('Cup of Joy', marginX, 22);
+
+  doc.setFillColor(...yellow);
+  doc.rect(marginX, 26, contentWidth, 2.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...brown);
+  doc.text('PAYSLIP', marginX, 36);
+
+  /* Staff info */
+  let y = 47;
+  const field = (label, value) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.setTextColor(...brown);
+    doc.text(label, marginX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(value), marginX + 42, y);
+    y += 6.5;
+  };
+  field('Staff Name:', staffName);
+  field('Role:', staffRoleLabel);
+  field('Pay Period:', periodLabel(period));
+  field('Payment Date:', fmtDateLong(period.paymentDate));
+  field('Date Generated:', fmtDateLong(new Date()));
+  y += 3;
+
+  /* Attendance table */
+  const cols = { date: marginX + 2, day: marginX + 26, in: marginX + 46, out: marginX + 78, hours: marginX + 110, status: marginX + 138 };
+  function drawTableHeader() {
+    doc.setFillColor(...brown);
+    doc.rect(marginX, y - 4.2, contentWidth, 7, 'F');
+    doc.setTextColor(...cream);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text('DATE', cols.date, y);
+    doc.text('DAY', cols.day, y);
+    doc.text('CLOCK IN', cols.in, y);
+    doc.text('CLOCK OUT', cols.out, y);
+    doc.text('HOURS', cols.hours, y);
+    doc.text('STATUS', cols.status, y);
+    y += 6.5;
+  }
+  drawTableHeader();
+
+  const byDate = {};
+  (stats.shiftRows || []).forEach(r => { (byDate[r.date] ||= []).push(r); });
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let cursor = new Date(period.start);
+  let stripe = 0;
+  while (cursor <= period.end) {
+    const ds = dateStr(cursor);
+    const dayRows = (byDate[ds] || []).slice().sort((a, b) => a.clock_in_time.localeCompare(b.clock_in_time));
+    const isAbsent = dayRows.length === 0;
+    const hasManual = dayRows.some(r => r.method === 'manual');
+    const hasCompleted = dayRows.some(r => r.clock_out_time);
+
+    if (stripe % 2 === 1) {
+      doc.setFillColor(250, 246, 230);
+      doc.rect(marginX, y - 4.2, contentWidth, 6, 'F');
+    }
+    stripe++;
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    const rowColor = isAbsent ? [175, 168, 155] : brown;
+    doc.setTextColor(...rowColor);
+
+    doc.text(cursor.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }), cols.date, y);
+    doc.text(dayNames[cursor.getDay()], cols.day, y);
+
+    if (isAbsent) {
+      doc.text('—', cols.in, y);
+      doc.text('—', cols.out, y);
+      doc.text('—', cols.hours, y);
+      doc.text('Absent', cols.status, y);
+    } else {
+      const firstIn = dayRows[0].clock_in_time;
+      const lastOutRow = [...dayRows].reverse().find(r => r.clock_out_time);
+      const totalMin = dayRows.reduce((s, r) => s + (r.duration_minutes ?? (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000 : 0)), 0);
+
+      doc.text(fmtTimeShort(firstIn), cols.in, y);
+      doc.text(lastOutRow ? fmtTimeShort(lastOutRow.clock_out_time) : 'Ongoing', cols.out, y);
+      doc.text(fmtHM(totalMin), cols.hours, y);
+
+      const statusLabel = hasCompleted ? 'Present' : 'Incomplete';
+      doc.setTextColor(...rowColor);
+      doc.text(statusLabel, cols.status, y);
+
+      if (hasManual) {
+        const badgeX = cols.status + doc.getTextWidth(statusLabel) + 2;
+        doc.setFillColor(255, 243, 205);
+        doc.roundedRect(badgeX, y - 3.4, 6, 4.4, 1, 1, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+        doc.setTextColor(138, 109, 0);
+        doc.text('M', badgeX + 1.6, y);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      }
+    }
+
+    y += 6;
+    cursor.setDate(cursor.getDate() + 1);
+    if (y > 262) {
+      doc.addPage();
+      y = 20;
+      stripe = 0;
+      drawTableHeader();
+    }
+  }
+
+  y += 6;
+  if (y > 250) { doc.addPage(); y = 20; }
+
+  /* Earnings summary */
+  doc.setFillColor(...yellow);
+  doc.rect(marginX, y, contentWidth, 24, 'F');
+  doc.setTextColor(...brown);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text(`Total Days Worked: ${stats.daysWorked}`, marginX + 4, y + 8);
+  doc.text(`Daily Rate: PHP 300.00`, marginX + 4, y + 15);
+  doc.setFontSize(13);
+  doc.text(`TOTAL PAY: PHP ${stats.totalPay.toFixed(2)}`, marginX + 4, y + 21.5);
+  y += 34;
+
+  if (y > 255) { doc.addPage(); y = 30; }
+
+  /* Signatures */
+  doc.setDrawColor(...brown);
+  doc.line(marginX, y, marginX + 75, y);
+  doc.line(marginX + contentWidth - 75, y, marginX + contentWidth, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.setTextColor(...brown);
+  doc.text('Prepared by (Owner)', marginX, y + 5);
+  doc.text('Received by (Staff)', marginX + contentWidth - 75, y + 5);
+  y += 18;
+
+  /* Footer */
+  doc.setFontSize(7.5);
+  doc.setTextColor(140, 130, 110);
+  doc.text('For internal use only. Cup of Joy. Brgy. Udiao, in front of Udiao Elementary School, next to PNP Checkpoint.', marginX, 283, { maxWidth: contentWidth });
+  doc.text(`Generated ${new Date().toLocaleString('en-PH')}`, marginX, 289);
+
+  const periodTag = `${dateStr(period.start)}_to_${dateStr(period.end)}`;
+  doc.save(`CupOfJoy_Payslip_${staffName.replace(/\s+/g, '_')}_${periodTag}.pdf`);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SETTINGS TAB
+   ══════════════════════════════════════════════════════════════ */
+const INGREDIENTS = ['Espresso beans', 'Milk', 'Condensed milk', 'Matcha powder', 'Horchata powder', 'Biscoff spread',
+  'Chocolate syrup', 'Caramel sauce', 'White mocha syrup', 'Hazelnut syrup', 'Vanilla syrup', 'Fruit purees',
+  'Fruit syrups', 'Soda', 'Oreo crumbs', 'Boba', 'Nata', 'Yakult', 'Oat milk'];
+
+async function getSetting(key) {
+  const { data } = await insforge.database.from('settings').select('value').eq('key', key).maybeSingle();
+  return data?.value ?? null;
+}
+async function setSetting(key, value) {
+  const { data: existing } = await insforge.database.from('settings').select('id').eq('key', key).maybeSingle();
+  if (existing) await insforge.database.from('settings').update({ value }).eq('id', existing.id);
+  else await insforge.database.from('settings').insert([{ key, value }]);
+}
+
+function ingId(ing) { return ing.replace(/\s+/g, '-'); }
+
+async function loadSettings() {
+  const [shopName, address, lat, lng, radius, allowDiscount, stockJson] = await Promise.all([
+    getSetting('shop_name'), getSetting('shop_address'), getSetting('shop_lat'), getSetting('shop_lng'),
+    getSetting('radius_meters'), getSetting('allow_staff_discount'), getSetting('ingredient_stock')
+  ]);
+
+  document.getElementById('bizShopName').textContent = shopName || 'Cup of Joy';
+  document.getElementById('bizAddress').textContent = address || '—';
+  document.getElementById('bizCoords').textContent = (lat && lng) ? `${lat}, ${lng}` : '—';
+  document.getElementById('radiusInput').value = radius || 50;
+  document.getElementById('allowDiscountToggle').checked = allowDiscount === 'true';
+
+  const stockMap = stockJson ? JSON.parse(stockJson) : {};
+  const grid = document.getElementById('ingredientGrid');
+  grid.innerHTML = INGREDIENTS.map(ing => {
+    const entry = stockMap[ing] || { current: 0, minimum: 0 };
+    const isLow = Number(entry.current) < Number(entry.minimum);
+    return `
+    <div class="ingredient-field${isLow ? ' low' : ''}">
+      <div class="ing-name">${escapeHtml(ing)}</div>
+      <div class="ing-inputs">
+        <div>
+          <label for="ing-cur-${ingId(ing)}">Current Stock</label>
+          <input type="number" min="0" id="ing-cur-${ingId(ing)}" value="${entry.current ?? 0}" />
+        </div>
+        <div>
+          <label for="ing-min-${ingId(ing)}">Minimum Level</label>
+          <input type="number" min="0" id="ing-min-${ingId(ing)}" value="${entry.minimum ?? 0}" />
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('radiusInput').addEventListener('change', async (e) => {
+  const val = Math.max(1, Number(e.target.value) || 50);
+  e.target.value = val;
+  await setSetting('radius_meters', String(val));
+  const msg = document.getElementById('radiusMsg');
+  msg.textContent = 'Radius updated — this now applies to the location check on login and shift clock in/out.';
+  msg.className = 'msg show success';
+  setTimeout(() => msg.className = 'msg', 3000);
+});
+
+document.getElementById('allowDiscountToggle').addEventListener('change', async (e) => {
+  await setSetting('allow_staff_discount', e.target.checked ? 'true' : 'false');
+  const msg = document.getElementById('discountMsg');
+  msg.textContent = 'Discount setting saved.';
+  msg.className = 'msg show success';
+  setTimeout(() => msg.className = 'msg', 3000);
+});
+
+document.getElementById('saveStockBtn').addEventListener('click', async () => {
+  const stockMap = {};
+  INGREDIENTS.forEach(ing => {
+    stockMap[ing] = {
+      current: Number(document.getElementById(`ing-cur-${ingId(ing)}`).value) || 0,
+      minimum: Number(document.getElementById(`ing-min-${ingId(ing)}`).value) || 0
+    };
+  });
+  await setSetting('ingredient_stock', JSON.stringify(stockMap));
+  const msg = document.getElementById('stockMsg');
+  msg.textContent = 'Stock levels saved. Staff will see a warning on POS for anything below minimum.';
+  msg.className = 'msg show success';
+  setTimeout(() => msg.className = 'msg', 3000);
+  loadSettings();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════ */
+(async () => {
+  await loadSalesSummary();
+  await loadSalesHistory();
+  await loadStaffStatus();
+  await loadShiftLog();
+  buildPeriodOptions();
+  await loadSalaryTab();
+  await loadSettings();
+})();
+</script>
+</body>
+</html>

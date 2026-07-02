@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Staff Manager — Cup of Joy</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --yellow: #FADA2A;
+    --brown: #3D2000;
+    --cream: #FFFDF0;
+    --brown-light: #6b3a00;
+    --red: #C0392B;
+    --green: #2E7D32;
+    --grey: #9a8f78;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+    padding-bottom: 3rem;
+  }
+
+  header.topbar {
+    background: var(--brown);
+    color: var(--cream);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  header.topbar .logo-text {
+    font-weight: 900;
+    font-size: 1.25rem;
+  }
+
+  header.topbar .logo-text span { color: var(--yellow); }
+
+  header.topbar .sub {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .65;
+  }
+
+  .logout-btn, .back-btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: .78rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: rgba(255,253,240,.12);
+    color: var(--cream);
+    border: 1px solid rgba(255,253,240,.35);
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem;
+  }
+
+  h1 { font-size: 1.15rem; margin-bottom: 1rem; }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(61,32,0,.08);
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 700;
+    font-size: .8rem;
+    margin-bottom: .35rem;
+    color: var(--brown-light);
+  }
+
+  .field { margin-bottom: 1rem; }
+
+  select, input[type="text"], input[type="password"] {
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    padding: .75rem .9rem;
+    border-radius: 10px;
+    border: 2px solid #eee3c8;
+    background: var(--cream);
+    color: var(--brown);
+    outline: none;
+  }
+
+  select:focus, input:focus { border-color: var(--yellow); }
+
+  .btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: .82rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--brown);
+    background: var(--yellow);
+    border: none;
+    border-radius: 10px;
+    padding: .75rem 1.1rem;
+    cursor: pointer;
+  }
+
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-dark { background: var(--brown); color: var(--yellow); }
+  .btn-outline { background: transparent; color: var(--brown); border: 2px solid var(--brown); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-sm { padding: .5rem .8rem; font-size: .72rem; }
+
+  .msg {
+    display: none;
+    font-weight: 700;
+    font-size: .85rem;
+    border-radius: 10px;
+    padding: .7rem .9rem;
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .msg.show { display: block; }
+  .msg.error { background: #fdecea; color: var(--red); border: 1px solid #f5c6c1; }
+  .msg.success { background: #e8f5e9; color: var(--green); border: 1px solid #c5e6c8; }
+
+  /* Onboard success QR panel */
+  .qr-result {
+    display: none;
+    text-align: center;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 2px dashed #eee3c8;
+  }
+  .qr-result.show { display: block; }
+  .qr-result .qr-box { display: inline-block; padding: 12px; background: #fff; border-radius: 12px; border: 2px solid #eee3c8; }
+  .qr-result h3 { font-size: 1rem; margin-bottom: .75rem; }
+  .qr-result .actions { display: flex; gap: .6rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+
+  /* Staff list */
+  .staff-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(61,32,0,.07);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: .9rem;
+  }
+
+  .staff-card .row1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+
+  .staff-card .name { font-weight: 800; font-size: 1.02rem; }
+  .staff-card .role { font-size: .78rem; font-weight: 700; opacity: .6; }
+
+  .badge {
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: .28rem .65rem;
+    border-radius: 50px;
+  }
+  .badge.active { background: #e8f5e9; color: var(--green); }
+  .badge.disabled { background: #f4f0e4; color: var(--grey); }
+
+  .staff-card .actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: .9rem;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(61,32,0,.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 1.25rem;
+  }
+  .modal-backdrop.show { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 18px;
+    max-width: 380px;
+    width: 100%;
+    padding: 1.5rem;
+    text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 { font-size: 1.05rem; margin-bottom: .75rem; }
+  .modal p { font-size: .88rem; font-weight: 600; opacity: .8; margin-bottom: 1rem; line-height: 1.5; }
+  .modal .actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .modal .qr-box { display: inline-block; padding: 12px; background: #fff; border-radius: 12px; border: 2px solid #eee3c8; }
+  .modal .field { text-align: left; }
+
+  .warn-box {
+    background: #fdecea;
+    border: 1px solid #f5c6c1;
+    color: var(--red);
+    font-weight: 700;
+    font-size: .82rem;
+    border-radius: 10px;
+    padding: .8rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    font-weight: 700;
+    opacity: .5;
+    padding: 2rem 0;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="logo-text">Cup of <span>Joy</span></div>
+    <div class="sub">Staff Manager</div>
+  </div>
+  <div class="topbar-right">
+    <a class="back-btn" href="owner-dashboard.html">← Dashboard</a>
+    <button class="logout-btn" id="logoutBtn" type="button">Log Out</button>
+  </div>
+</header>
+
+<main>
+  <h1>Onboard New Staff</h1>
+  <div class="card">
+    <div class="field">
+      <label for="newName">Full Name</label>
+      <input type="text" id="newName" placeholder="e.g. Juan Dela Cruz" />
+    </div>
+    <div class="field">
+      <label for="newRole">Role</label>
+      <select id="newRole">
+        <option value="full_time">Full Time</option>
+        <option value="part_time">Part Time</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="newPin">4-Digit PIN</label>
+      <input type="password" id="newPin" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off" />
+    </div>
+    <button class="btn" id="addStaffBtn" type="button">Add Staff</button>
+    <div class="msg" id="onboardMsg"></div>
+
+    <div class="qr-result" id="onboardQrResult">
+      <h3>Staff onboarded! Here's their QR code:</h3>
+      <div class="qr-box" id="onboardQrBox"></div>
+      <div class="actions">
+        <button class="btn btn-dark btn-sm" id="onboardDownloadBtn" type="button">Download PNG</button>
+        <button class="btn btn-outline btn-sm" id="onboardCloseBtn" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <h1>Manage Staff</h1>
+  <div id="staffList"></div>
+</main>
+
+<!-- QR VIEW MODAL -->
+<div class="modal-backdrop" id="qrModal">
+  <div class="modal">
+    <h3 id="qrModalName">QR Code</h3>
+    <div class="qr-box" id="qrModalBox"></div>
+    <div class="actions">
+      <button class="btn btn-dark btn-sm" id="qrModalDownloadBtn" type="button">Download PNG</button>
+      <button class="btn btn-outline btn-sm" id="qrModalCloseBtn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal">
+    <h3>Edit Staff</h3>
+    <div class="field">
+      <label for="editName">Full Name</label>
+      <input type="text" id="editName" />
+    </div>
+    <div class="field">
+      <label for="editRole">Role</label>
+      <select id="editRole">
+        <option value="full_time">Full Time</option>
+        <option value="part_time">Part Time</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="editPin">4-Digit PIN</label>
+      <input type="password" id="editPin" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" />
+    </div>
+    <div class="msg" id="editMsg"></div>
+    <div class="actions">
+      <button class="btn" id="editSaveBtn" type="button">Save Changes</button>
+      <button class="btn btn-outline" id="editCancelBtn" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Staff Permanently?</h3>
+    <div class="warn-box" id="deleteWarnText"></div>
+    <div class="actions">
+      <button class="btn btn-red" id="deleteConfirmBtn" type="button">Delete Permanently</button>
+      <button class="btn btn-outline" id="deleteCancelBtn" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- REGENERATE CONFIRM MODAL -->
+<div class="modal-backdrop" id="regenModal">
+  <div class="modal">
+    <h3>Regenerate QR Code?</h3>
+    <p id="regenText"></p>
+    <div class="actions">
+      <button class="btn btn-dark" id="regenConfirmBtn" type="button">Regenerate</button>
+      <button class="btn btn-outline" id="regenCancelBtn" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ── Session guard: owner only ── */
+const SESSION_MAX_INACTIVITY_MS = 12 * 60 * 60 * 1000; // 12 hours
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('cupofjoy_session'));
+    if (!s) return null;
+    if (Date.now() - (s.lastActivityAt || s.loginAt) > SESSION_MAX_INACTIVITY_MS) {
+      sessionStorage.removeItem('cupofjoy_session');
+      return null;
+    }
+    s.lastActivityAt = Date.now();
+    sessionStorage.setItem('cupofjoy_session', JSON.stringify(s));
+    return s;
+  } catch { return null; }
+}
+const session = getSession();
+if (!session) window.location.href = 'login.html';
+else if (session.role !== 'owner') window.location.href = 'staff-dashboard.html';
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('cupofjoy_session');
+  window.location.href = 'login.html';
+});
+
+/* ── Helpers ── */
+function roleLabel(r) { return r === 'full_time' ? 'Full Time' : 'Part Time'; }
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `msg show ${type}`;
+}
+function hideMsg(id) {
+  document.getElementById(id).className = 'msg';
+}
+
+function renderQR(container, text) {
+  container.innerHTML = '';
+  new QRCode(container, {
+    text,
+    width: 200,
+    height: 200,
+    colorDark: '#3D2000',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function downloadQRFrom(container, filename) {
+  const canvas = container.querySelector('canvas');
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function genToken() {
+  if (window.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g, '');
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ── Onboard new staff ── */
+document.getElementById('addStaffBtn').addEventListener('click', async () => {
+  hideMsg('onboardMsg');
+  document.getElementById('onboardQrResult').classList.remove('show');
+
+  const name = document.getElementById('newName').value.trim();
+  const role = document.getElementById('newRole').value;
+  const pin = document.getElementById('newPin').value.trim();
+
+  if (!name) { showMsg('onboardMsg', 'Please enter a full name', 'error'); return; }
+  if (!/^[0-9]{4}$/.test(pin)) { showMsg('onboardMsg', 'PIN must be exactly 4 digits', 'error'); return; }
+
+  const btn = document.getElementById('addStaffBtn');
+  btn.disabled = true;
+
+  const token = genToken();
+  const { data, error } = await insforge.database
+    .from('staff')
+    .insert([{ name, role, pin, token, status: 'active' }])
+    .select();
+
+  btn.disabled = false;
+
+  if (error || !data?.[0]) {
+    showMsg('onboardMsg', 'Failed to add staff. Please try again.', 'error');
+    return;
+  }
+
+  showMsg('onboardMsg', `${name} was added successfully.`, 'success');
+  document.getElementById('newName').value = '';
+  document.getElementById('newPin').value = '';
+
+  const staff = data[0];
+  const qrBox = document.getElementById('onboardQrBox');
+  renderQR(qrBox, staff.token);
+  document.getElementById('onboardQrResult').classList.add('show');
+  document.getElementById('onboardDownloadBtn').onclick = () =>
+    downloadQRFrom(qrBox, `${staff.name.replace(/\s+/g, '_')}_QR.png`);
+  document.getElementById('onboardCloseBtn').onclick = () => {
+    document.getElementById('onboardQrResult').classList.remove('show');
+  };
+
+  loadStaffList();
+});
+
+/* ── Load & render staff list ── */
+async function loadStaffList() {
+  const listEl = document.getElementById('staffList');
+  const { data, error } = await insforge.database
+    .from('staff')
+    .select('id,name,role,status,token')
+    .order('name', { ascending: true });
+
+  if (error) {
+    listEl.innerHTML = '<div class="empty-state">Failed to load staff.</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">No staff onboarded yet.</div>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  data.forEach(s => listEl.appendChild(buildStaffCard(s)));
+}
+
+function buildStaffCard(s) {
+  const card = document.createElement('div');
+  card.className = 'staff-card';
+
+  const isActive = s.status === 'active';
+  card.innerHTML = `
+    <div class="row1">
+      <div>
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="role">${roleLabel(s.role)}</div>
+      </div>
+      <span class="badge ${isActive ? 'active' : 'disabled'}">${isActive ? 'Active' : 'Disabled'}</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline btn-sm" data-action="view-qr">View QR</button>
+      <button class="btn btn-outline btn-sm" data-action="regen">Regenerate QR</button>
+      <button class="btn btn-outline btn-sm" data-action="edit">Edit</button>
+      <button class="btn ${isActive ? 'btn-outline' : 'btn-green'} btn-sm" data-action="toggle">${isActive ? 'Disable' : 'Enable'}</button>
+      <button class="btn btn-red btn-sm" data-action="delete">Delete</button>
+    </div>
+  `;
+
+  card.querySelector('[data-action="view-qr"]').addEventListener('click', () => openQrModal(s));
+  card.querySelector('[data-action="regen"]').addEventListener('click', () => openRegenModal(s));
+  card.querySelector('[data-action="edit"]').addEventListener('click', () => openEditModal(s));
+  card.querySelector('[data-action="toggle"]').addEventListener('click', () => toggleStatus(s));
+  card.querySelector('[data-action="delete"]').addEventListener('click', () => openDeleteModal(s));
+
+  return card;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ── View QR modal ── */
+const qrModal = document.getElementById('qrModal');
+function openQrModal(s) {
+  document.getElementById('qrModalName').textContent = `${s.name}'s QR Code`;
+  const box = document.getElementById('qrModalBox');
+  renderQR(box, s.token);
+  document.getElementById('qrModalDownloadBtn').onclick = () =>
+    downloadQRFrom(box, `${s.name.replace(/\s+/g, '_')}_QR.png`);
+  qrModal.classList.add('show');
+}
+document.getElementById('qrModalCloseBtn').addEventListener('click', () => qrModal.classList.remove('show'));
+
+/* ── Regenerate QR ── */
+const regenModal = document.getElementById('regenModal');
+let regenTarget = null;
+function openRegenModal(s) {
+  regenTarget = s;
+  document.getElementById('regenText').textContent =
+    `This will invalidate ${s.name}'s current QR code immediately. Their old QR will stop working and a new one will be generated.`;
+  regenModal.classList.add('show');
+}
+document.getElementById('regenCancelBtn').addEventListener('click', () => regenModal.classList.remove('show'));
+document.getElementById('regenConfirmBtn').addEventListener('click', async () => {
+  if (!regenTarget) return;
+  const newToken = genToken();
+  const { error } = await insforge.database
+    .from('staff')
+    .update({ token: newToken })
+    .eq('id', regenTarget.id);
+
+  regenModal.classList.remove('show');
+  if (!error) {
+    await loadStaffList();
+    openQrModal({ ...regenTarget, token: newToken });
+  }
+});
+
+/* ── Edit staff ── */
+const editModal = document.getElementById('editModal');
+let editTarget = null;
+function openEditModal(s) {
+  editTarget = s;
+  hideMsg('editMsg');
+  document.getElementById('editName').value = s.name;
+  document.getElementById('editRole').value = s.role;
+  document.getElementById('editPin').value = '';
+  document.getElementById('editPin').placeholder = 'Leave blank to keep current PIN';
+  editModal.classList.add('show');
+}
+document.getElementById('editCancelBtn').addEventListener('click', () => editModal.classList.remove('show'));
+document.getElementById('editSaveBtn').addEventListener('click', async () => {
+  if (!editTarget) return;
+  hideMsg('editMsg');
+
+  const name = document.getElementById('editName').value.trim();
+  const role = document.getElementById('editRole').value;
+  const pin = document.getElementById('editPin').value.trim();
+
+  if (!name) { showMsg('editMsg', 'Full name is required', 'error'); return; }
+  if (pin && !/^[0-9]{4}$/.test(pin)) { showMsg('editMsg', 'PIN must be exactly 4 digits', 'error'); return; }
+
+  const updates = { name, role };
+  if (pin) updates.pin = pin;
+
+  const { error } = await insforge.database
+    .from('staff')
+    .update(updates)
+    .eq('id', editTarget.id);
+
+  if (error) { showMsg('editMsg', 'Failed to save changes', 'error'); return; }
+
+  editModal.classList.remove('show');
+  loadStaffList();
+});
+
+/* ── Enable / Disable ── */
+async function toggleStatus(s) {
+  const newStatus = s.status === 'active' ? 'disabled' : 'active';
+  await insforge.database.from('staff').update({ status: newStatus }).eq('id', s.id);
+  loadStaffList();
+}
+
+/* ── Delete staff ── */
+const deleteModal = document.getElementById('deleteModal');
+let deleteTarget = null;
+function openDeleteModal(s) {
+  deleteTarget = s;
+  document.getElementById('deleteWarnText').textContent =
+    `You are about to permanently delete ${s.name}. All of their sales, attendance, and salary records tied to this profile will be permanently lost. This cannot be undone.`;
+  deleteModal.classList.add('show');
+}
+document.getElementById('deleteCancelBtn').addEventListener('click', () => deleteModal.classList.remove('show'));
+document.getElementById('deleteConfirmBtn').addEventListener('click', async () => {
+  if (!deleteTarget) return;
+  await insforge.database.from('staff').delete().eq('id', deleteTarget.id);
+  deleteModal.classList.remove('show');
+  loadStaffList();
+});
+
+/* ── Init ── */
+loadStaffList();
+</script>
+</body>
+</html>

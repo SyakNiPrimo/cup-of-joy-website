@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>My Dashboard — Cup of Joy</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --yellow: #FADA2A;
+    --brown: #3D2000;
+    --cream: #FFFDF0;
+    --brown-light: #6b3a00;
+    --red: #C0392B;
+    --green: #2E7D32;
+    --grey: #9a8f78;
+    --nav-h: 62px;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+    padding-bottom: calc(var(--nav-h) + 1.5rem);
+  }
+
+  button { font-family: 'Nunito', sans-serif; cursor: pointer; }
+
+  header.topbar {
+    background: var(--brown); color: var(--cream); padding: .85rem 1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+    position: sticky; top: 0; z-index: 60; flex-wrap: wrap;
+  }
+  header.topbar .logo-text { font-weight: 900; font-size: 1.15rem; white-space: nowrap; }
+  header.topbar .logo-text span { color: var(--yellow); }
+  header.topbar .clock { font-size: .72rem; font-weight: 700; opacity: .7; }
+  header.topbar .right { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+  header.topbar .staff-name { font-size: .8rem; font-weight: 800; }
+  .topbar-btn {
+    font-weight: 800; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+    background: var(--red); color: #fff; border: none; border-radius: 8px; padding: .5rem .8rem; cursor: pointer;
+  }
+
+  .tabs {
+    display: grid; grid-template-columns: repeat(3, 1fr); background: #fff;
+    position: sticky; top: 52px; z-index: 55; box-shadow: 0 3px 10px rgba(61,32,0,.05);
+  }
+  .tab-btn {
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .78rem; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--brown-light); background: none; border: none;
+    padding: .9rem .3rem; border-bottom: 3px solid transparent;
+  }
+  .tab-btn.active { color: var(--brown); border-bottom-color: var(--yellow); }
+
+  main { max-width: 560px; margin: 0 auto; padding: 1.25rem 1rem; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .card { background: #fff; border-radius: 18px; padding: 1.25rem; box-shadow: 0 6px 22px rgba(61,32,0,.08); margin-bottom: 1.1rem; }
+  .card h2 { font-size: 1rem; margin-bottom: .9rem; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: 1.1rem; }
+  .stat-box { background: #fff; border-radius: 16px; padding: 1.1rem; text-align: center; box-shadow: 0 6px 22px rgba(61,32,0,.08); }
+  .stat-box .label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; opacity: .55; margin-bottom: .4rem; }
+  .stat-box .value { font-size: 1.4rem; font-weight: 900; color: var(--brown-light); }
+
+  .order-item { padding: .8rem 0; border-bottom: 1px solid #f0e8d0; cursor: pointer; }
+  .order-item:last-child { border-bottom: none; }
+  .order-item .head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  .order-item .ordno { font-weight: 900; font-size: .88rem; }
+  .order-item .meta { font-size: .74rem; opacity: .6; font-weight: 700; }
+  .order-item .total { font-weight: 900; }
+  .status-badge { font-size: .62rem; font-weight: 800; text-transform: uppercase; padding: .18rem .55rem; border-radius: 50px; margin-left: .4rem; }
+  .status-badge.active { background: #e8f5e9; color: var(--green); }
+  .status-badge.edited { background: #fff3cd; color: #8a6d00; }
+  .status-badge.voided { background: #f4f0e4; color: var(--grey); }
+  .order-detail { display: none; margin-top: .6rem; background: var(--cream); border-radius: 10px; padding: .7rem .8rem; }
+  .order-detail.show { display: block; }
+  .summary-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .85rem; padding: .25rem 0; }
+  .summary-row.total { font-weight: 900; border-top: 1px dashed #ddd; margin-top: .3rem; padding-top: .4rem; }
+  .receipt-sub { font-size: .72rem; opacity: .6; padding-left: .5rem; }
+
+  .empty-state { text-align: center; font-weight: 700; opacity: .5; padding: 1.5rem 0; }
+
+  /* Attendance */
+  .status-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem 1rem; border-radius: 50px; font-weight: 800; font-size: .78rem; text-transform: uppercase; }
+  .status-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-pill.in { background: #e8f5e9; color: var(--green); }
+  .status-pill.in .dot { background: var(--green); }
+  .status-pill.out { background: #f4f0e4; color: var(--grey); }
+  .status-pill.out .dot { background: var(--grey); }
+
+  .log-entry { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .6rem 0; border-bottom: 1px solid #f0e8d0; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry .times { font-weight: 800; font-size: .85rem; }
+  .log-entry .arrow { opacity: .4; margin: 0 .3rem; }
+  .log-entry .duration { font-weight: 900; }
+  .ongoing-tag { color: var(--green); }
+
+  .total-row { display: flex; justify-content: space-between; font-weight: 900; font-size: .95rem; border-top: 2px dashed #eee3c8; margin-top: .5rem; padding-top: .6rem; }
+
+  table.week-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+  table.week-table th, table.week-table td { text-align: left; padding: .5rem .3rem; border-bottom: 1px solid #f0e8d0; }
+  table.week-table th { font-weight: 800; opacity: .6; text-transform: uppercase; font-size: .65rem; }
+  .day-status { font-size: .64rem; font-weight: 800; text-transform: uppercase; padding: .15rem .45rem; border-radius: 50px; }
+  .day-status.present { background: #e8f5e9; color: var(--green); }
+  .day-status.absent { background: #fdecea; color: var(--red); }
+  .day-status.manual { background: #fff3cd; color: #8a6d00; }
+  .day-status.pending { background: #f4f0e4; color: var(--grey); }
+
+  /* Salary */
+  .period-card { text-align: left; }
+  .period-label { font-weight: 900; font-size: 1.05rem; margin-bottom: .2rem; }
+  .payment-badge {
+    display: inline-block; background: var(--yellow); color: var(--brown); font-weight: 800; font-size: .74rem;
+    padding: .3rem .7rem; border-radius: 50px; margin: .4rem 0 1rem;
+  }
+  .pay-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .88rem; padding: .3rem 0; }
+  .pay-row.total { font-size: 1.05rem; font-weight: 900; border-top: 2px dashed #eee3c8; margin-top: .4rem; padding-top: .6rem; }
+  .payslip-btn {
+    width: 100%; margin-top: 1rem; background: var(--brown); color: var(--yellow); border: none; border-radius: 10px;
+    padding: .75rem; font-weight: 800; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em;
+  }
+
+  .history-item { background: #fff; border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: .8rem; box-shadow: 0 4px 16px rgba(61,32,0,.06); }
+  .history-item .head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .history-item .period { font-weight: 800; font-size: .9rem; }
+  .history-item .paid { font-size: .72rem; opacity: .6; font-weight: 700; }
+  .history-item .pay { font-weight: 900; font-size: 1rem; }
+  .history-detail { display: none; margin-top: .7rem; border-top: 1px dashed #eee3c8; padding-top: .6rem; }
+  .history-detail.show { display: block; }
+  .history-detail .day-row { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 700; padding: .25rem 0; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h); background: #fff;
+    border-top: 1px solid rgba(61,32,0,.1); display: flex; z-index: 120; box-shadow: 0 -2px 10px rgba(61,32,0,.06);
+  }
+  .bn-link {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .15rem; text-decoration: none; color: var(--brown); opacity: .5; font-weight: 800;
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .bn-link .icon { font-size: 1.2rem; }
+  .bn-link.active { opacity: 1; color: var(--brown-light); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="logo-text">Cup of <span>Joy</span></div>
+    <div class="clock" id="clock">--</div>
+  </div>
+  <div class="right">
+    <span class="staff-name" id="staffNameLabel"></span>
+    <button class="topbar-btn" id="logoutBtn" type="button">Log Out</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="sales" type="button">Sales</button>
+  <button class="tab-btn" data-tab="attendance" type="button">Attendance</button>
+  <button class="tab-btn" data-tab="salary" type="button">Salary</button>
+</div>
+
+<main>
+  <!-- SALES TAB -->
+  <div class="tab-panel active" id="tab-sales">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">Sales Today</div><div class="value" id="salesTotal">₱0.00</div></div>
+      <div class="stat-box"><div class="label">Orders Today</div><div class="value" id="salesCount">0</div></div>
+    </div>
+    <div class="card">
+      <h2>Today's Orders</h2>
+      <div id="salesOrderList"></div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE TAB -->
+  <div class="tab-panel" id="tab-attendance">
+    <div class="card" style="text-align:center;">
+      <h2>Current Status</h2>
+      <div id="attCurrentStatus"></div>
+    </div>
+    <div class="card">
+      <h2>Today's Shift Log</h2>
+      <div id="attTodayLog"></div>
+      <div class="total-row"><span>Total Hours Today</span><span id="attTotalToday">0h 0m</span></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">Days This Week</div><div class="value" id="weekDays">0</div></div>
+      <div class="stat-box"><div class="label">Hours This Week</div><div class="value" id="weekHours">0h</div></div>
+    </div>
+    <div class="card">
+      <h2>This Week</h2>
+      <table class="week-table">
+        <thead><tr><th>Day</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>Status</th></tr></thead>
+        <tbody id="weekTableBody"></tbody>
+      </table>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">Days This Month</div><div class="value" id="monthDays">0</div></div>
+      <div class="stat-box"><div class="label">Hours This Month</div><div class="value" id="monthHours">0h</div></div>
+    </div>
+  </div>
+
+  <!-- SALARY TAB -->
+  <div class="tab-panel" id="tab-salary">
+    <div class="card period-card">
+      <h2>Current Pay Period</h2>
+      <div id="currentPeriodBody"></div>
+    </div>
+    <div class="card">
+      <h2>Salary History (Last 3 Months)</h2>
+      <div id="salaryHistoryList"></div>
+    </div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <a href="pos.html" class="bn-link"><span class="icon">🧾</span>POS</a>
+  <a href="shift.html" class="bn-link"><span class="icon">⏱️</span>Shift</a>
+  <a href="staff-dashboard.html" class="bn-link active"><span class="icon">📊</span>Dashboard</a>
+</nav>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ══════════════════ SESSION GUARD ══════════════════ */
+const SESSION_MAX_INACTIVITY_MS = 12 * 60 * 60 * 1000; // 12 hours
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('cupofjoy_session'));
+    if (!s) return null;
+    if (Date.now() - (s.lastActivityAt || s.loginAt) > SESSION_MAX_INACTIVITY_MS) {
+      sessionStorage.removeItem('cupofjoy_session');
+      return null;
+    }
+    s.lastActivityAt = Date.now();
+    sessionStorage.setItem('cupofjoy_session', JSON.stringify(s));
+    return s;
+  } catch { return null; }
+}
+const session = getSession();
+if (!session) window.location.href = 'login.html';
+else if (session.role === 'owner') window.location.href = 'owner-dashboard.html';
+
+document.getElementById('staffNameLabel').textContent = session?.staffName || '';
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('cupofjoy_session');
+  window.location.href = 'login.html';
+});
+
+/* ══════════════════ CLOCK ══════════════════ */
+function tickClock() {
+  const now = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  document.getElementById('clock').textContent = now.toLocaleString('en-PH', opts);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ══════════════════ TABS ══════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ══════════════════ HELPERS ══════════════════ */
+const money = n => `₱${(Number(n) || 0).toFixed(2)}`;
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+function dateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDurationMin(mins) {
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  return `${h}h ${m}m`;
+}
+function fmtDateLong(d) { return d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }); }
+function fmtDateShort(d) { return d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' }); }
+
+/* ══════════════════ SALES TAB ══════════════════ */
+async function loadSales() {
+  const now = new Date();
+  const startISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const endISO = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+
+  const { data } = await insforge.database
+    .from('orders')
+    .select('*')
+    .eq('staff_id', session.staffId)
+    .gte('created_at', startISO)
+    .lt('created_at', endISO)
+    .order('created_at', { ascending: false });
+
+  const orders = data || [];
+  const countable = orders.filter(o => o.status !== 'voided');
+  const totalSales = countable.reduce((s, o) => s + Number(o.total), 0);
+
+  document.getElementById('salesTotal').textContent = money(totalSales);
+  document.getElementById('salesCount').textContent = countable.length;
+
+  const list = document.getElementById('salesOrderList');
+  list.innerHTML = '';
+  if (orders.length === 0) {
+    list.innerHTML = '<div class="empty-state">No orders yet today.</div>';
+    return;
+  }
+
+  orders.forEach(order => {
+    const row = document.createElement('div');
+    row.className = 'order-item';
+    row.innerHTML = `
+      <div class="head">
+        <div>
+          <span class="ordno">${escapeHtml(order.order_number)}</span>
+          <span class="status-badge ${order.status}">${order.status}</span>
+          <div class="meta">${escapeHtml(order.customer_name)} · ${fmtTime(order.created_at)}</div>
+        </div>
+        <div class="total">${money(order.total)}</div>
+      </div>
+      <div class="order-detail" id="detail-${order.id}"></div>`;
+    row.querySelector('.head').addEventListener('click', async () => {
+      const detail = row.querySelector('.order-detail');
+      if (detail.classList.contains('show')) { detail.classList.remove('show'); return; }
+      detail.innerHTML = '<div class="empty-state">Loading…</div>';
+      detail.classList.add('show');
+      const { data: items } = await insforge.database.from('order_items').select('*').eq('order_id', order.id);
+      let html = '';
+      (items || []).forEach(it => {
+        const meta = [it.size, it.variant].filter(Boolean).join(' · ');
+        html += `<div class="summary-row"><span>${it.quantity}× ${escapeHtml(it.item_name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''}</span><span>${money(it.line_total)}</span></div>`;
+        if (it.addons?.length) html += `<div class="receipt-sub">+ ${it.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+        if (it.notes) html += `<div class="receipt-sub">"${escapeHtml(it.notes)}"</div>`;
+      });
+      html += `<div class="summary-row"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>`;
+      html += `<div class="summary-row"><span>Discount</span><span>-${money(order.discount_amount)}</span></div>`;
+      html += `<div class="summary-row total"><span>Total</span><span>${money(order.total)}</span></div>`;
+      html += `<div class="summary-row"><span>Payment</span><span>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</span></div>`;
+      detail.innerHTML = html;
+    });
+    list.appendChild(row);
+  });
+}
+
+/* ══════════════════ ATTENDANCE TAB ══════════════════ */
+async function loadAttendance() {
+  const today = new Date();
+  const todayString = dateStr(today);
+
+  // Current status
+  const { data: open } = await insforge.database
+    .from('shift_logs').select('*').eq('staff_id', session.staffId)
+    .is('clock_out_time', null).order('clock_in_time', { ascending: false }).limit(1).maybeSingle();
+
+  const statusEl = document.getElementById('attCurrentStatus');
+  if (open) {
+    statusEl.innerHTML = `<div class="status-pill in"><span class="dot"></span>Clocked In</div>
+      <div style="margin-top:.6rem; font-weight:700; font-size:.85rem; opacity:.75;">Since ${fmtTime(open.clock_in_time)}</div>`;
+  } else {
+    statusEl.innerHTML = `<div class="status-pill out"><span class="dot"></span>Not Clocked In</div>`;
+  }
+
+  // Today's log
+  const { data: todayRows } = await insforge.database
+    .from('shift_logs').select('*').eq('staff_id', session.staffId).eq('date', todayString)
+    .order('clock_in_time', { ascending: true });
+
+  const logEl = document.getElementById('attTodayLog');
+  logEl.innerHTML = '';
+  let totalTodayMin = 0;
+  if (!todayRows || todayRows.length === 0) {
+    logEl.innerHTML = '<div class="empty-state">No shifts today yet.</div>';
+  } else {
+    todayRows.forEach(row => {
+      const ongoing = !row.clock_out_time;
+      const dur = ongoing
+        ? (Date.now() - new Date(row.clock_in_time).getTime()) / 60000
+        : (row.duration_minutes ?? (new Date(row.clock_out_time) - new Date(row.clock_in_time)) / 60000);
+      totalTodayMin += dur;
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<div class="times">${fmtTime(row.clock_in_time)}<span class="arrow">→</span>${ongoing ? '<span class="ongoing-tag">Ongoing</span>' : fmtTime(row.clock_out_time)}</div>
+        <div class="duration">${fmtDurationMin(dur)}</div>`;
+      logEl.appendChild(entry);
+    });
+  }
+  document.getElementById('attTotalToday').textContent = fmtDurationMin(totalTodayMin);
+
+  // Week range (Mon-Sun)
+  const dow = today.getDay();
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(today); monday.setDate(today.getDate() + diffToMonday);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+
+  const { data: weekRows } = await insforge.database
+    .from('shift_logs').select('*').eq('staff_id', session.staffId)
+    .gte('date', dateStr(monday)).lte('date', dateStr(sunday));
+
+  const byDate = {};
+  (weekRows || []).forEach(r => { (byDate[r.date] ||= []).push(r); });
+
+  const presentDates = Object.keys(byDate);
+  let weekMinutes = 0;
+  presentDates.forEach(d => {
+    byDate[d].forEach(r => {
+      weekMinutes += r.duration_minutes != null
+        ? r.duration_minutes
+        : (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000
+          : (Date.now() - new Date(r.clock_in_time).getTime()) / 60000);
+    });
+  });
+
+  document.getElementById('weekDays').textContent = presentDates.length;
+  document.getElementById('weekHours').textContent = Math.round(weekMinutes / 60 * 10) / 10 + 'h';
+
+  const tbody = document.getElementById('weekTableBody');
+  tbody.innerHTML = '';
+  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const ds = dateStr(d);
+    const rows = byDate[ds];
+    const isFuture = d > today && ds !== todayString;
+    let timeIn = '—', timeOut = '—', hours = '—', status = 'pending', statusLabel = '—';
+
+    if (rows && rows.length) {
+      timeIn = fmtTime(rows[0].clock_in_time);
+      const lastRow = rows[rows.length - 1];
+      const anyOngoing = rows.some(r => !r.clock_out_time);
+      timeOut = anyOngoing ? 'Ongoing' : fmtTime(lastRow.clock_out_time);
+      const mins = rows.reduce((s, r) => s + (r.duration_minutes != null ? r.duration_minutes
+        : (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000
+          : (Date.now() - new Date(r.clock_in_time).getTime()) / 60000)), 0);
+      hours = fmtDurationMin(mins);
+      status = rows.some(r => r.method === 'manual') ? 'manual' : 'present';
+      statusLabel = status;
+    } else if (!isFuture) {
+      status = 'absent'; statusLabel = 'absent';
+      timeIn = timeOut = hours = '—';
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${dayLabels[i]} ${d.getDate()}</td><td>${timeIn}</td><td>${timeOut}</td><td>${hours}</td>
+      <td><span class="day-status ${status}">${statusLabel}</span></td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Month
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const { data: monthRows } = await insforge.database
+    .from('shift_logs').select('*').eq('staff_id', session.staffId)
+    .gte('date', dateStr(monthStart)).lte('date', todayString);
+
+  const monthDates = new Set((monthRows || []).map(r => r.date));
+  let monthMinutes = 0;
+  (monthRows || []).forEach(r => {
+    monthMinutes += r.duration_minutes != null
+      ? r.duration_minutes
+      : (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000
+        : (Date.now() - new Date(r.clock_in_time).getTime()) / 60000);
+  });
+  document.getElementById('monthDays').textContent = monthDates.size;
+  document.getElementById('monthHours').textContent = Math.round(monthMinutes / 60 * 10) / 10 + 'h';
+}
+
+/* ══════════════════ SALARY TAB ══════════════════ */
+const DAILY_RATE = 300;
+
+function getPayPeriod(date) {
+  const y = date.getFullYear(), m = date.getMonth(), day = date.getDate();
+  if (day <= 15) {
+    return { start: new Date(y, m, 1), end: new Date(y, m, 15), paymentDate: new Date(y, m, 16) };
+  }
+  return { start: new Date(y, m, 16), end: new Date(y, m + 1, 0), paymentDate: new Date(y, m + 1, 1) };
+}
+function prevPayPeriod(period) {
+  const prevDate = new Date(period.start);
+  prevDate.setDate(prevDate.getDate() - 1);
+  return getPayPeriod(prevDate);
+}
+function periodLabel(period) {
+  return `${fmtDateShort(period.start)} – ${fmtDateLong(period.end)}`;
+}
+
+async function computePeriodStats(period) {
+  const { data } = await insforge.database
+    .from('shift_logs').select('*').eq('staff_id', session.staffId)
+    .gte('date', dateStr(period.start)).lte('date', dateStr(period.end))
+    .order('clock_in_time', { ascending: true });
+  const shiftRows = data || [];
+  // Only shifts with both a clock-in AND a clock-out count as a worked day —
+  // an open/incomplete shift should not be paid until it's actually closed.
+  const dates = Array.from(new Set(shiftRows.filter(r => r.clock_out_time).map(r => r.date))).sort();
+  return { daysWorked: dates.length, totalPay: dates.length * DAILY_RATE, dates, shiftRows };
+}
+
+async function upsertSalaryPeriod(period, stats) {
+  const startStr = dateStr(period.start);
+  const { data: existing } = await insforge.database
+    .from('salary_periods').select('id').eq('staff_id', session.staffId).eq('period_start', startStr).maybeSingle();
+  const payload = {
+    staff_id: session.staffId, staff_name: session.staffName,
+    period_start: startStr, period_end: dateStr(period.end), payment_date: dateStr(period.paymentDate),
+    days_worked: stats.daysWorked, daily_rate: DAILY_RATE, total_pay: stats.totalPay
+  };
+  if (existing) await insforge.database.from('salary_periods').update(payload).eq('id', existing.id);
+  else await insforge.database.from('salary_periods').insert([payload]);
+}
+
+function fmtTimeShort(iso) {
+  return iso ? new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) : '—';
+}
+function fmtHM(mins) {
+  if (!mins) return '0h 0m';
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return `${h}h ${m}m`;
+}
+
+/* Identical payslip builder to owner-dashboard.html — keep both in sync. */
+function buildPayslip(staffName, staffRoleLabel, period, stats) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const marginX = 16;
+  const pageWidth = 210;
+  const contentWidth = pageWidth - marginX * 2;
+  const brown = [61, 32, 0];
+  const yellow = [250, 218, 42];
+  const cream = [255, 253, 240];
+
+  /* Header */
+  doc.setTextColor(...brown);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(26);
+  doc.text('Cup of Joy', marginX, 22);
+
+  doc.setFillColor(...yellow);
+  doc.rect(marginX, 26, contentWidth, 2.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...brown);
+  doc.text('PAYSLIP', marginX, 36);
+
+  /* Staff info */
+  let y = 47;
+  const field = (label, value) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.setTextColor(...brown);
+    doc.text(label, marginX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(value), marginX + 42, y);
+    y += 6.5;
+  };
+  field('Staff Name:', staffName);
+  field('Role:', staffRoleLabel);
+  field('Pay Period:', periodLabel(period));
+  field('Payment Date:', fmtDateLong(period.paymentDate));
+  field('Date Generated:', fmtDateLong(new Date()));
+  y += 3;
+
+  /* Attendance table */
+  const cols = { date: marginX + 2, day: marginX + 26, in: marginX + 46, out: marginX + 78, hours: marginX + 110, status: marginX + 138 };
+  function drawTableHeader() {
+    doc.setFillColor(...brown);
+    doc.rect(marginX, y - 4.2, contentWidth, 7, 'F');
+    doc.setTextColor(...cream);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text('DATE', cols.date, y);
+    doc.text('DAY', cols.day, y);
+    doc.text('CLOCK IN', cols.in, y);
+    doc.text('CLOCK OUT', cols.out, y);
+    doc.text('HOURS', cols.hours, y);
+    doc.text('STATUS', cols.status, y);
+    y += 6.5;
+  }
+  drawTableHeader();
+
+  const byDate = {};
+  (stats.shiftRows || []).forEach(r => { (byDate[r.date] ||= []).push(r); });
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let cursor = new Date(period.start);
+  let stripe = 0;
+  while (cursor <= period.end) {
+    const ds = dateStr(cursor);
+    const dayRows = (byDate[ds] || []).slice().sort((a, b) => a.clock_in_time.localeCompare(b.clock_in_time));
+    const isAbsent = dayRows.length === 0;
+    const hasManual = dayRows.some(r => r.method === 'manual');
+    const hasCompleted = dayRows.some(r => r.clock_out_time);
+
+    if (stripe % 2 === 1) {
+      doc.setFillColor(250, 246, 230);
+      doc.rect(marginX, y - 4.2, contentWidth, 6, 'F');
+    }
+    stripe++;
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    const rowColor = isAbsent ? [175, 168, 155] : brown;
+    doc.setTextColor(...rowColor);
+
+    doc.text(cursor.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }), cols.date, y);
+    doc.text(dayNames[cursor.getDay()], cols.day, y);
+
+    if (isAbsent) {
+      doc.text('—', cols.in, y);
+      doc.text('—', cols.out, y);
+      doc.text('—', cols.hours, y);
+      doc.text('Absent', cols.status, y);
+    } else {
+      const firstIn = dayRows[0].clock_in_time;
+      const lastOutRow = [...dayRows].reverse().find(r => r.clock_out_time);
+      const totalMin = dayRows.reduce((s, r) => s + (r.duration_minutes ?? (r.clock_out_time ? (new Date(r.clock_out_time) - new Date(r.clock_in_time)) / 60000 : 0)), 0);
+
+      doc.text(fmtTimeShort(firstIn), cols.in, y);
+      doc.text(lastOutRow ? fmtTimeShort(lastOutRow.clock_out_time) : 'Ongoing', cols.out, y);
+      doc.text(fmtHM(totalMin), cols.hours, y);
+
+      const statusLabel = hasCompleted ? 'Present' : 'Incomplete';
+      doc.setTextColor(...rowColor);
+      doc.text(statusLabel, cols.status, y);
+
+      if (hasManual) {
+        const badgeX = cols.status + doc.getTextWidth(statusLabel) + 2;
+        doc.setFillColor(255, 243, 205);
+        doc.roundedRect(badgeX, y - 3.4, 6, 4.4, 1, 1, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+        doc.setTextColor(138, 109, 0);
+        doc.text('M', badgeX + 1.6, y);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      }
+    }
+
+    y += 6;
+    cursor.setDate(cursor.getDate() + 1);
+    if (y > 262) {
+      doc.addPage();
+      y = 20;
+      stripe = 0;
+      drawTableHeader();
+    }
+  }
+
+  y += 6;
+  if (y > 250) { doc.addPage(); y = 20; }
+
+  /* Earnings summary */
+  doc.setFillColor(...yellow);
+  doc.rect(marginX, y, contentWidth, 24, 'F');
+  doc.setTextColor(...brown);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text(`Total Days Worked: ${stats.daysWorked}`, marginX + 4, y + 8);
+  doc.text(`Daily Rate: PHP 300.00`, marginX + 4, y + 15);
+  doc.setFontSize(13);
+  doc.text(`TOTAL PAY: PHP ${stats.totalPay.toFixed(2)}`, marginX + 4, y + 21.5);
+  y += 34;
+
+  if (y > 255) { doc.addPage(); y = 30; }
+
+  /* Signatures */
+  doc.setDrawColor(...brown);
+  doc.line(marginX, y, marginX + 75, y);
+  doc.line(marginX + contentWidth - 75, y, marginX + contentWidth, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.setTextColor(...brown);
+  doc.text('Prepared by (Owner)', marginX, y + 5);
+  doc.text('Received by (Staff)', marginX + contentWidth - 75, y + 5);
+  y += 18;
+
+  /* Footer */
+  doc.setFontSize(7.5);
+  doc.setTextColor(140, 130, 110);
+  doc.text('For internal use only. Cup of Joy. Brgy. Udiao, in front of Udiao Elementary School, next to PNP Checkpoint.', marginX, 283, { maxWidth: contentWidth });
+  doc.text(`Generated ${new Date().toLocaleString('en-PH')}`, marginX, 289);
+
+  const periodTag = `${dateStr(period.start)}_to_${dateStr(period.end)}`;
+  doc.save(`CupOfJoy_Payslip_${staffName.replace(/\s+/g, '_')}_${periodTag}.pdf`);
+}
+
+function renderCurrentPeriod(period, stats) {
+  const el = document.getElementById('currentPeriodBody');
+  el.innerHTML = `
+    <div class="period-label">${periodLabel(period)}</div>
+    <div class="payment-badge">Paid on ${fmtDateLong(period.paymentDate)}</div>
+    <div class="pay-row"><span>Days Worked</span><span>${stats.daysWorked}</span></div>
+    <div class="pay-row"><span>Daily Rate</span><span>${money(DAILY_RATE)}</span></div>
+    <div class="pay-row total"><span>Total Pay</span><span>${money(stats.totalPay)}</span></div>
+    <button class="payslip-btn" id="currentPayslipBtn" type="button">Download Payslip</button>`;
+  const roleLabel = session.staffRole === 'full_time' ? 'Full Time' : 'Part Time';
+  document.getElementById('currentPayslipBtn').addEventListener('click', () => buildPayslip(session.staffName, roleLabel, period, stats));
+}
+
+function buildHistoryRow(period, stats) {
+  const row = document.createElement('div');
+  row.className = 'history-item';
+  row.innerHTML = `
+    <div class="head">
+      <div>
+        <div class="period">${periodLabel(period)}</div>
+        <div class="paid">Paid ${fmtDateLong(period.paymentDate)} · ${stats.daysWorked} day${stats.daysWorked === 1 ? '' : 's'}</div>
+      </div>
+      <div class="pay">${money(stats.totalPay)}</div>
+    </div>
+    <div class="history-detail" id="hist-${dateStr(period.start)}"></div>
+    <button class="payslip-btn" type="button">Download Payslip</button>`;
+
+  const detail = row.querySelector('.history-detail');
+  row.querySelector('.head').addEventListener('click', () => {
+    if (detail.classList.contains('show')) { detail.classList.remove('show'); return; }
+    if (stats.dates.length === 0) {
+      detail.innerHTML = '<div class="empty-state">No days worked this period.</div>';
+    } else {
+      detail.innerHTML = stats.dates.map(dstr => {
+        const d = new Date(dstr + 'T00:00:00');
+        return `<div class="day-row"><span>${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', weekday: 'short' })}</span><span>${money(DAILY_RATE)}</span></div>`;
+      }).join('');
+    }
+    detail.classList.add('show');
+  });
+
+  const roleLabel = session.staffRole === 'full_time' ? 'Full Time' : 'Part Time';
+  row.querySelector('.payslip-btn').addEventListener('click', () => buildPayslip(session.staffName, roleLabel, period, stats));
+  return row;
+}
+
+async function loadSalary() {
+  const today = new Date();
+  const current = getPayPeriod(today);
+  const currentStats = await computePeriodStats(current);
+  await upsertSalaryPeriod(current, currentStats);
+  renderCurrentPeriod(current, currentStats);
+
+  const historyList = document.getElementById('salaryHistoryList');
+  historyList.innerHTML = '<div class="empty-state">Loading…</div>';
+
+  let period = current;
+  const periods = [];
+  for (let i = 0; i < 6; i++) {
+    period = prevPayPeriod(period);
+    periods.push(period);
+  }
+
+  historyList.innerHTML = '';
+  for (const p of periods) {
+    const stats = await computePeriodStats(p);
+    await upsertSalaryPeriod(p, stats);
+    historyList.appendChild(buildHistoryRow(p, stats));
+  }
+}
+
+/* ══════════════════ INIT ══════════════════ */
+loadSales();
+loadAttendance();
+loadSalary();
+setInterval(loadAttendance, 60000);
+</script>
+</body>
+</html>

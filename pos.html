@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>POS — Cup of Joy</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --yellow: #FADA2A;
+    --brown: #3D2000;
+    --cream: #FFFDF0;
+    --brown-light: #6b3a00;
+    --nav-h: 62px;
+    --red: #C0392B;
+    --green: #2E7D32;
+    --grey: #9a8f78;
+    --cart-h: 78px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+    padding-bottom: calc(var(--cart-h) + var(--nav-h) + 1rem);
+  }
+
+  button { font-family: 'Nunito', sans-serif; cursor: pointer; }
+  input, select, textarea { font-family: 'Nunito', sans-serif; }
+
+  /* ── TOP BAR ── */
+  header.topbar {
+    background: var(--brown);
+    color: var(--cream);
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    flex-wrap: wrap;
+  }
+  header.topbar .logo-text { font-weight: 900; font-size: 1.15rem; white-space: nowrap; }
+  header.topbar .logo-text span { color: var(--yellow); }
+  header.topbar .clock { font-size: .72rem; font-weight: 700; opacity: .7; }
+  header.topbar .right { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+  header.topbar .staff-name { font-size: .8rem; font-weight: 800; }
+  .topbar-btn {
+    font-weight: 800; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+    background: rgba(255,253,240,.12); color: var(--cream); border: 1px solid rgba(255,253,240,.35);
+    border-radius: 8px; padding: .5rem .8rem; cursor: pointer; white-space: nowrap;
+  }
+  .topbar-btn.logout { background: var(--red); border-color: var(--red); }
+
+  /* ── ORDER SETUP ── */
+  .order-setup {
+    background: #fff;
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(61,32,0,.06);
+    position: sticky;
+    top: 52px;
+    z-index: 55;
+  }
+  .order-setup .row { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .order-setup .field { flex: 1 1 200px; }
+  .order-setup label { display: block; font-weight: 700; font-size: .72rem; margin-bottom: .3rem; color: var(--brown-light); }
+  .order-setup input[type="text"] {
+    width: 100%; padding: .65rem .8rem; border-radius: 10px; border: 2px solid #eee3c8;
+    background: var(--cream); color: var(--brown); font-weight: 700; font-size: .9rem; outline: none;
+  }
+  .order-setup input:focus { border-color: var(--yellow); }
+  .order-type-group { display: flex; gap: .4rem; }
+  .order-type-btn {
+    flex: 1; padding: .65rem .5rem; border-radius: 10px; border: 2px solid #eee3c8; background: var(--cream);
+    color: var(--brown); font-weight: 800; font-size: .78rem; text-align: center;
+  }
+  .order-type-btn.active { background: var(--yellow); border-color: var(--yellow); }
+  .edit-banner {
+    display: none; align-items: center; justify-content: space-between; gap: .5rem;
+    background: #fff3cd; border: 1px solid #ffe08a; color: var(--brown-light);
+    font-weight: 800; font-size: .8rem; border-radius: 10px; padding: .6rem .8rem; margin-top: .6rem;
+  }
+  .edit-banner.show { display: flex; }
+  .edit-banner button {
+    background: var(--brown); color: var(--yellow); border: none; border-radius: 8px;
+    padding: .4rem .8rem; font-weight: 800; font-size: .7rem; text-transform: uppercase;
+  }
+
+  /* ── CATEGORY PILLS ── */
+  .cat-nav {
+    display: flex; gap: .5rem; overflow-x: auto; padding: .75rem 1rem;
+    position: sticky; top: 122px; z-index: 50; background: var(--cream);
+    border-bottom: 1px solid rgba(61,32,0,.08);
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .cat-nav::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    flex-shrink: 0; padding: .55rem 1.1rem; border-radius: 50px; border: 2px solid var(--brown);
+    background: #fff; color: var(--brown); font-weight: 800; font-size: .78rem; white-space: nowrap;
+  }
+  .cat-pill.active { background: var(--brown); color: var(--yellow); }
+
+  /* ── MENU ── */
+  main { padding: 0 1rem; }
+  .cat-section { padding-top: 1.25rem; }
+  .cat-section h2 { font-size: 1.1rem; margin-bottom: .8rem; }
+  .item-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: .75rem;
+    margin-bottom: .5rem;
+  }
+  .item-card {
+    background: #fff; border-radius: 14px; padding: .85rem; box-shadow: 0 3px 12px rgba(61,32,0,.07);
+    display: flex; flex-direction: column; gap: .5rem;
+  }
+  .item-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: .4rem; }
+  .item-card .name { font-weight: 800; font-size: .88rem; line-height: 1.25; }
+  .recipe-btn {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: var(--cream); color: var(--brown-light); font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .item-card .price { font-weight: 900; font-size: 1rem; color: var(--brown-light); }
+  .toggle-group { display: flex; gap: .3rem; flex-wrap: wrap; }
+  .toggle-btn {
+    padding: .35rem .6rem; border-radius: 8px; border: 2px solid #eee3c8; background: var(--cream);
+    color: var(--brown); font-weight: 800; font-size: .68rem;
+  }
+  .toggle-btn.active { background: var(--yellow); border-color: var(--yellow); }
+  .add-btn {
+    margin-top: auto; background: var(--brown); color: var(--yellow); border: none; border-radius: 10px;
+    padding: .55rem; font-weight: 800; font-size: .82rem; letter-spacing: .04em;
+  }
+  .add-btn:active { transform: scale(.97); }
+  .add-flash { animation: flash .35s ease; }
+  @keyframes flash { 0% { background: var(--green); } 100% { background: var(--brown); } }
+
+  /* ── CART BAR ── */
+  .cart-bar {
+    position: fixed; bottom: var(--nav-h); left: 0; right: 0; height: var(--cart-h);
+    background: var(--brown); color: var(--cream); display: flex; align-items: center;
+    justify-content: space-between; padding: 0 1rem; z-index: 90; box-shadow: 0 -4px 18px rgba(0,0,0,.15);
+  }
+  .cart-bar .info { display: flex; flex-direction: column; }
+  .cart-bar .count { font-size: .72rem; font-weight: 700; opacity: .75; text-transform: uppercase; letter-spacing: .05em; }
+  .cart-bar .total { font-size: 1.2rem; font-weight: 900; color: var(--yellow); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h); background: #fff;
+    border-top: 1px solid rgba(61,32,0,.1); display: flex; z-index: 95; box-shadow: 0 -2px 10px rgba(61,32,0,.06);
+  }
+  .bn-link {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .15rem; text-decoration: none; color: var(--brown); opacity: .5; font-weight: 800;
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .bn-link .icon { font-size: 1.2rem; }
+  .bn-link.active { opacity: 1; color: var(--brown-light); }
+  .cart-bar .btn-view {
+    background: var(--yellow); color: var(--brown); border: none; border-radius: 10px;
+    padding: .75rem 1.3rem; font-weight: 800; font-size: .85rem;
+  }
+
+  /* ── MODALS (shared) ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(61,32,0,.6); display: none;
+    align-items: flex-end; justify-content: center; z-index: 200; padding: 0;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal-backdrop.center { align-items: center; padding: 1.25rem; }
+  .sheet {
+    background: var(--cream); width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+    border-radius: 20px 20px 0 0; padding: 1.25rem 1.1rem 1.5rem;
+  }
+  .modal-backdrop.center .sheet { border-radius: 18px; max-height: 90vh; }
+  .sheet-handle { width: 40px; height: 4px; background: #ddd; border-radius: 4px; margin: 0 auto .9rem; }
+  .sheet h2 { font-size: 1.1rem; margin-bottom: .9rem; }
+  .sheet-close {
+    position: sticky; top: 0; float: right; background: #fff; border: none; border-radius: 50%;
+    width: 32px; height: 32px; font-size: 1rem; font-weight: 900; color: var(--brown);
+  }
+
+  label { display: block; font-weight: 700; font-size: .78rem; margin-bottom: .35rem; color: var(--brown-light); }
+  .field { margin-bottom: 1rem; }
+  input[type="text"], input[type="number"], textarea, select.form-select {
+    width: 100%; padding: .7rem .85rem; border-radius: 10px; border: 2px solid #eee3c8;
+    background: #fff; color: var(--brown); font-weight: 700; font-size: .9rem; outline: none;
+  }
+  textarea { resize: vertical; min-height: 60px; font-weight: 600; }
+  input:focus, textarea:focus, select:focus { border-color: var(--yellow); }
+
+  .btn {
+    font-weight: 800; font-size: .85rem; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--brown); background: var(--yellow); border: none; border-radius: 10px;
+    padding: .8rem 1rem; width: 100%;
+  }
+  .btn:disabled { opacity: .5; }
+  .btn-dark { background: var(--brown); color: var(--yellow); }
+  .btn-outline { background: transparent; color: var(--brown); border: 2px solid var(--brown); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-row { display: flex; gap: .6rem; }
+  .btn-row .btn { flex: 1; }
+
+  .msg { display: none; font-weight: 700; font-size: .82rem; border-radius: 10px; padding: .65rem .85rem; margin-top: .8rem; text-align: center; }
+  .msg.show { display: block; }
+  .msg.error { background: #fdecea; color: var(--red); border: 1px solid #f5c6c1; }
+  .msg.success { background: #e8f5e9; color: var(--green); border: 1px solid #c5e6c8; }
+
+  /* Cart list */
+  .cart-item {
+    background: #fff; border-radius: 12px; padding: .75rem .9rem; margin-bottom: .6rem;
+  }
+  .cart-item .head { display: flex; justify-content: space-between; gap: .5rem; }
+  .cart-item .name { font-weight: 800; font-size: .9rem; }
+  .cart-item .meta { font-size: .74rem; opacity: .65; font-weight: 700; margin-top: .15rem; }
+  .cart-item .note { font-size: .74rem; font-style: italic; opacity: .7; margin-top: .2rem; }
+  .cart-item .line-total { font-weight: 900; font-size: .92rem; white-space: nowrap; }
+  .cart-item .foot { display: flex; align-items: center; justify-content: space-between; margin-top: .55rem; }
+  .qty-group { display: flex; align-items: center; gap: .5rem; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--cream);
+    color: var(--brown); font-weight: 900; font-size: 1rem;
+  }
+  .qty-val { font-weight: 800; min-width: 20px; text-align: center; }
+  .cart-item .actions { display: flex; gap: .5rem; }
+  .link-btn { background: none; border: none; font-weight: 800; font-size: .74rem; color: var(--brown-light); text-decoration: underline; }
+  .link-btn.remove { color: var(--red); }
+
+  .summary-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .88rem; padding: .3rem 0; }
+  .summary-row.total { font-size: 1.1rem; font-weight: 900; border-top: 2px dashed #eee3c8; margin-top: .4rem; padding-top: .6rem; }
+  .discount-row { display: flex; gap: .5rem; margin: .5rem 0; }
+  .discount-row select { flex: 0 0 110px; }
+  .discount-row input { flex: 1; }
+
+  .addon-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .addon-chip {
+    padding: .5rem .8rem; border-radius: 50px; border: 2px solid #eee3c8; background: #fff;
+    font-weight: 800; font-size: .78rem;
+  }
+  .addon-chip.active { background: var(--yellow); border-color: var(--yellow); }
+
+  .flavor-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .flavor-chip {
+    padding: .55rem .9rem; border-radius: 50px; border: 2px solid #eee3c8; background: #fff;
+    font-weight: 800; font-size: .8rem;
+  }
+  .flavor-chip.active { background: var(--yellow); border-color: var(--yellow); }
+  .flavor-chip:disabled { opacity: .35; }
+
+  /* Recipe */
+  .recipe-size-toggle { display: flex; gap: .5rem; margin-bottom: 1rem; }
+  .recipe-group { margin-bottom: .9rem; }
+  .recipe-group h4 { font-size: .82rem; font-weight: 800; color: var(--brown-light); margin-bottom: .4rem; }
+  .recipe-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .88rem; padding: .35rem 0; border-bottom: 1px solid #f0e8d0; }
+  .recipe-note { font-size: .8rem; font-style: italic; opacity: .7; padding: .3rem 0; }
+
+  /* Payment */
+  .pay-method-group { display: flex; gap: .6rem; margin-bottom: 1rem; }
+  .pay-method-btn {
+    flex: 1; padding: .8rem; border-radius: 12px; border: 2px solid #eee3c8; background: #fff;
+    font-weight: 800; font-size: .85rem;
+  }
+  .pay-method-btn.active { background: var(--yellow); border-color: var(--yellow); }
+  .change-box {
+    background: #fff; border-radius: 10px; padding: .7rem .9rem; font-weight: 800; font-size: .95rem;
+    display: flex; justify-content: space-between; margin-top: .5rem;
+  }
+  .change-box.negative { color: var(--red); }
+
+  /* Receipt */
+  #receiptSheet { max-width: 380px; }
+  .receipt-box { background: #fff; border-radius: 14px; padding: 1.1rem; font-size: .85rem; }
+  .receipt-box .r-header { text-align: center; margin-bottom: .8rem; }
+  .receipt-box .r-header .logo-text { font-weight: 900; font-size: 1.2rem; color: var(--brown); }
+  .receipt-box .r-header .logo-text span { color: #b89a10; }
+  .receipt-box .r-meta { font-size: .74rem; opacity: .7; font-weight: 700; text-align: center; margin-bottom: .8rem; }
+  .receipt-box hr { border: none; border-top: 1px dashed #ccc; margin: .6rem 0; }
+  .receipt-line { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: .3rem; }
+  .receipt-sub { font-size: .74rem; opacity: .65; padding-left: .5rem; }
+  .receipt-thanks { text-align: center; font-weight: 800; margin-top: .8rem; font-size: .85rem; }
+
+  /* History */
+  .history-item { background: #fff; border-radius: 12px; padding: .8rem .9rem; margin-bottom: .6rem; }
+  .history-item .head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  .history-item .ordno { font-weight: 900; font-size: .85rem; }
+  .history-item .meta { font-size: .74rem; opacity: .65; font-weight: 700; }
+  .history-item .total { font-weight: 900; }
+  .status-badge { font-size: .65rem; font-weight: 800; text-transform: uppercase; padding: .2rem .55rem; border-radius: 50px; }
+  .status-badge.active { background: #e8f5e9; color: var(--green); }
+  .status-badge.edited { background: #fff3cd; color: #8a6d00; }
+  .status-badge.voided { background: #f4f0e4; color: var(--grey); }
+  .history-detail { display: none; margin-top: .7rem; border-top: 1px dashed #eee3c8; padding-top: .6rem; }
+  .history-detail.show { display: block; }
+  .history-actions { display: flex; gap: .4rem; margin-top: .6rem; flex-wrap: wrap; }
+  .history-actions button {
+    flex: 1; min-width: 80px; padding: .5rem; border-radius: 8px; border: 2px solid var(--brown);
+    background: #fff; color: var(--brown); font-weight: 800; font-size: .7rem; text-transform: uppercase;
+  }
+  .history-actions button.void { border-color: var(--red); color: var(--red); }
+
+  .empty-state { text-align: center; font-weight: 700; opacity: .5; padding: 2rem 0; }
+
+  .low-stock-banner {
+    display: none; align-items: flex-start; gap: .6rem; background: #fdecea; color: var(--red);
+    border-bottom: 1px solid #f5c6c1; padding: .7rem 1rem; font-size: .82rem; font-weight: 700;
+    position: sticky; top: 52px; z-index: 56;
+  }
+  .low-stock-banner.show { display: flex; }
+  .low-stock-banner .icon { font-size: 1.1rem; line-height: 1; }
+  .low-stock-banner .text { flex: 1; }
+  .low-stock-banner .text b { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .15rem; }
+  .low-stock-banner .dismiss { background: none; border: none; color: var(--red); font-weight: 900; font-size: 1rem; cursor: pointer; padding: 0 .2rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #receiptModal, #receiptModal * { visibility: visible; }
+    #receiptModal { position: fixed; inset: 0; background: #fff; align-items: flex-start; padding: 1rem; }
+    .sheet-close, #receiptPrintBtn, #receiptNewOrderBtn { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="logo-text">Cup of <span>Joy</span></div>
+    <div class="clock" id="clock">--</div>
+  </div>
+  <div class="right">
+    <span class="staff-name" id="staffNameLabel"></span>
+    <button class="topbar-btn" id="historyBtn" type="button">History</button>
+    <button class="topbar-btn logout" id="logoutBtn" type="button">Log Out</button>
+  </div>
+</header>
+
+<div class="low-stock-banner" id="lowStockBanner">
+  <span class="icon">⚠️</span>
+  <div class="text"><b>Low Stock Warning</b><span id="lowStockList"></span></div>
+  <button class="dismiss" id="lowStockDismissBtn" type="button" aria-label="Dismiss">✕</button>
+</div>
+
+<div class="order-setup">
+  <div class="row">
+    <div class="field">
+      <label for="customerName">Customer Name</label>
+      <input type="text" id="customerName" placeholder="Who's this order for?" />
+    </div>
+    <div class="field">
+      <label>Order Type</label>
+      <div class="order-type-group" id="orderTypeGroup">
+        <button class="order-type-btn" data-type="dine_in" type="button">Dine In</button>
+        <button class="order-type-btn" data-type="takeout" type="button">Takeout</button>
+        <button class="order-type-btn" data-type="delivery" type="button">Delivery</button>
+      </div>
+    </div>
+  </div>
+  <div class="msg" id="orderSetupMsg"></div>
+  <div class="edit-banner" id="editBanner">
+    <span id="editBannerText">Editing order</span>
+    <button id="cancelEditBtn" type="button">Cancel Edit</button>
+  </div>
+</div>
+
+<nav class="cat-nav" id="catNav"></nav>
+
+<main id="menuMain"></main>
+
+<div class="cart-bar" id="cartBar">
+  <div class="info">
+    <span class="count" id="cartCount">0 items</span>
+    <span class="total" id="cartBarTotal">₱0.00</span>
+  </div>
+  <button class="btn-view" id="openCartBtn" type="button">View Cart</button>
+</div>
+
+<nav class="bottom-nav">
+  <a href="pos.html" class="bn-link active"><span class="icon">🧾</span>POS</a>
+  <a href="shift.html" class="bn-link"><span class="icon">⏱️</span>Shift</a>
+  <a href="staff-dashboard.html" class="bn-link"><span class="icon">📊</span>Dashboard</a>
+</nav>
+
+<!-- CART SHEET -->
+<div class="modal-backdrop" id="cartModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeCartBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>Your Order</h2>
+    <div id="cartItemsList"></div>
+    <div class="discount-row" id="discountRow">
+      <select class="form-select" id="discountType">
+        <option value="none">No Discount</option>
+        <option value="fixed">Fixed ₱</option>
+        <option value="percentage">Percentage %</option>
+      </select>
+      <input type="number" id="discountValue" placeholder="0" min="0" step="any" />
+    </div>
+    <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">₱0.00</span></div>
+    <div class="summary-row"><span>Discount</span><span id="sumDiscount">-₱0.00</span></div>
+    <div class="summary-row total"><span>Total</span><span id="sumTotal">₱0.00</span></div>
+    <div class="btn-row" style="margin-top:1rem;">
+      <button class="btn btn-outline" id="clearCartBtn" type="button">Clear Cart</button>
+      <button class="btn btn-dark" id="checkoutBtn" type="button">Proceed to Checkout</button>
+    </div>
+    <div class="msg" id="cartMsg"></div>
+  </div>
+</div>
+
+<!-- ITEM OPTIONS (addons + notes) -->
+<div class="modal-backdrop" id="itemOptionsModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeItemOptionsBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2 id="itemOptionsTitle">Item Options</h2>
+    <label>Add-ons</label>
+    <div class="addon-list" id="itemAddonList"></div>
+    <div class="field">
+      <label for="itemNote">Order Note</label>
+      <textarea id="itemNote" placeholder="e.g. no ice, less sugar, extra hot"></textarea>
+    </div>
+    <button class="btn" id="saveItemOptionsBtn" type="button">Save</button>
+  </div>
+</div>
+
+<!-- CUSTOM MIX -->
+<div class="modal-backdrop" id="customMixModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeCustomMixBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>Custom Mix — Pick 2 Flavors</h2>
+    <div class="flavor-list" id="flavorList"></div>
+    <div class="msg" id="customMixMsg"></div>
+    <button class="btn" id="addCustomMixBtn" type="button">Add to Cart — ₱60.00</button>
+  </div>
+</div>
+
+<!-- RECIPE MODAL -->
+<div class="modal-backdrop" id="recipeModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeRecipeBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2 id="recipeTitle">Recipe</h2>
+    <div class="recipe-size-toggle">
+      <button class="toggle-btn active" id="recipeSize16" type="button">16oz</button>
+      <button class="toggle-btn" id="recipeSize22" type="button">22oz</button>
+    </div>
+    <div id="recipeBody"></div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-backdrop" id="checkoutModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeCheckoutBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>Checkout</h2>
+    <div id="checkoutSummary"></div>
+    <div id="payMethodSection">
+      <label style="margin-top:.5rem;">Payment Method</label>
+      <div class="pay-method-group">
+        <button class="pay-method-btn active" id="payCashBtn" type="button">💵 Cash</button>
+        <button class="pay-method-btn" id="payGcashBtn" type="button">📱 GCash</button>
+      </div>
+      <div id="cashFields">
+        <div class="field">
+          <label for="cashReceived">Amount Received</label>
+          <input type="number" id="cashReceived" min="0" step="any" placeholder="0.00" />
+        </div>
+        <div class="change-box" id="changeBox"><span>Change</span><span id="changeAmount">₱0.00</span></div>
+      </div>
+      <div id="gcashFields" style="display:none;">
+        <div class="field">
+          <label for="gcashRef">GCash Reference Number</label>
+          <input type="text" id="gcashRef" placeholder="Reference number" />
+        </div>
+      </div>
+    </div>
+    <div class="msg" id="checkoutMsg"></div>
+    <button class="btn btn-dark" id="confirmOrderBtn" type="button" style="margin-top:.5rem;">Confirm Order</button>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-backdrop center" id="receiptModal">
+  <div class="sheet" id="receiptSheet">
+    <button class="sheet-close" id="closeReceiptBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <div class="receipt-box" id="receiptBox"></div>
+    <div class="btn-row" style="margin-top:1rem;">
+      <button class="btn btn-outline" id="receiptPrintBtn" type="button">Print</button>
+      <button class="btn btn-dark" id="receiptNewOrderBtn" type="button">New Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-backdrop" id="historyModal">
+  <div class="sheet">
+    <button class="sheet-close" id="closeHistoryBtn" type="button">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>Your Orders — This Shift</h2>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- VOID CONFIRM -->
+<div class="modal-backdrop center" id="voidModal">
+  <div class="sheet">
+    <h2>Void This Order?</h2>
+    <p style="font-weight:600; opacity:.8; margin-bottom:1rem;">This order will be marked as Voided. It stays in history but is excluded from active sales.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="voidCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-red" id="voidConfirmBtn" type="button">Void Order</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ══════════════════ SESSION GUARD ══════════════════ */
+const SESSION_MAX_INACTIVITY_MS = 12 * 60 * 60 * 1000; // 12 hours
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('cupofjoy_session'));
+    if (!s) return null;
+    if (Date.now() - (s.lastActivityAt || s.loginAt) > SESSION_MAX_INACTIVITY_MS) {
+      sessionStorage.removeItem('cupofjoy_session');
+      return null;
+    }
+    s.lastActivityAt = Date.now();
+    sessionStorage.setItem('cupofjoy_session', JSON.stringify(s));
+    return s;
+  } catch { return null; }
+}
+const session = getSession();
+if (!session) window.location.href = 'login.html';
+else if (session.role === 'owner') window.location.href = 'owner-dashboard.html';
+
+document.getElementById('staffNameLabel').textContent = session?.staffName || '';
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('cupofjoy_session');
+  window.location.href = 'login.html';
+});
+
+/* Discounts default to owner-only (Phase 4 setting). Hide the discount row
+   for staff unless the owner has explicitly allowed it. */
+(async () => {
+  try {
+    const { data } = await insforge.database.from('settings').select('value').eq('key', 'allow_staff_discount').maybeSingle();
+    if (data?.value !== 'true') document.getElementById('discountRow').style.display = 'none';
+  } catch (e) { console.error('Failed to load discount setting', e); }
+})();
+
+/* Low stock warning banner. Dismissal is tied to this login's loginAt, so it
+   reappears fresh on the next login even within the same browser tab. */
+(async () => {
+  try {
+    const { data } = await insforge.database.from('settings').select('value').eq('key', 'ingredient_stock').maybeSingle();
+    if (!data?.value) return;
+    const stockMap = JSON.parse(data.value);
+    const lowItems = Object.entries(stockMap)
+      .filter(([, v]) => Number(v.current) < Number(v.minimum))
+      .map(([name]) => name);
+    if (lowItems.length === 0) return;
+
+    const dismissKey = 'cupofjoy_lowstock_dismissed';
+    if (sessionStorage.getItem(dismissKey) === String(session.loginAt)) return;
+
+    document.getElementById('lowStockList').textContent = lowItems.join(', ');
+    document.getElementById('lowStockBanner').classList.add('show');
+    document.getElementById('lowStockDismissBtn').addEventListener('click', () => {
+      sessionStorage.setItem(dismissKey, String(session.loginAt));
+      document.getElementById('lowStockBanner').classList.remove('show');
+    });
+  } catch (e) { console.error('Failed to load stock levels', e); }
+})();
+
+/* ══════════════════ CLOCK ══════════════════ */
+function tickClock() {
+  const now = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  document.getElementById('clock').textContent = now.toLocaleString('en-PH', opts);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ══════════════════ MENU DATA ══════════════════ */
+const ADDONS = [
+  { id: 'espresso', name: 'Espresso', price: 15 },
+  { id: 'oatmilk', name: 'Oat Milk', price: 30 },
+  { id: 'yakult', name: 'Yakult', price: 10 },
+  { id: 'nata', name: 'Nata', price: 10 },
+  { id: 'boba', name: 'Boba', price: 15 },
+  { id: 'egg', name: 'Egg', price: 15 }
+];
+
+const FRUIT_FLAVORS = ['Peach Mango', 'Peach', 'Mango', 'Lychee', 'Grapes', 'Green Apple', 'Strawberry', 'Blueberry', 'Lemon'];
+
+const FRUIT_SODA_RECIPE = [{ rows: [
+  { label: 'Flavor Syrup', v16: '3 pumps', v22: '4 pumps' },
+  { label: 'Soda', v16: '180ml', v22: '250ml' }
+] }];
+
+const MATCHA_MIX = { title: 'Matcha Mix (whisk 1 min, then float on top)', rows: [
+  { label: 'Matcha Powder', v16: '4g', v22: '6g' },
+  { label: 'Vanilla Syrup', v16: '1 pump', v22: '1 pump' },
+  { label: 'Water', v16: '40ml', v22: '55ml' }
+] };
+
+const SEA_SALT_TOPPING = { title: 'Sea Salt Cream Topping', rows: [
+  { label: 'All Purpose Cream', v16: '15ml', v22: '20ml' },
+  { label: 'Milk', v16: '15ml', v22: '20ml' },
+  { label: 'Vanilla Syrup', v16: '1 pump', v22: '1 pump' },
+  { label: 'Salt', v16: '1 pinch', v22: '1-2 pinches' }
+] };
+
+function fruitPureeRecipe(fruit) {
+  return [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' },
+    { label: `${fruit} Puree`, v16: '50ml', v22: '70ml' },
+    { label: `${fruit} Syrup`, v16: '2 pumps', v22: '3 pumps' }
+  ] }];
+}
+
+function matchaFruitRecipe(fruit) {
+  return [
+    { rows: [
+      { label: 'Milk', v16: '150ml', v22: '205ml' },
+      { label: `${fruit} Puree`, v16: '50ml', v22: '70ml' },
+      { label: `${fruit} Syrup`, v16: '2 pumps', v22: '3 pumps' }
+    ] },
+    MATCHA_MIX
+  ];
+}
+
+const COFFEE = [
+  { name: 'Americano', price16: 90, price22: 125, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Espresso', v16: '30ml', v22: '40ml' }, { label: 'Water', v16: '150ml', v22: '205ml' } ] }] },
+  { name: 'Latte', price16: 95, price22: 130, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' } ] }] },
+  { name: 'Cappuccino', price16: 95, price22: 130, variants: ['Hot'], recipe: [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' },
+    { label: 'Milk Foam', v16: 'Generous', v22: 'Generous' } ] }] },
+  { name: 'Caramel Macchiato', price16: 100, price22: 135, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' },
+    { label: 'Vanilla Syrup', v16: '1.5 pumps', v22: '2 pumps' }, { label: 'Caramel Sauce', v16: '30ml', v22: '40ml' } ] }] },
+  { name: 'White Mocha Latte', price16: 100, price22: 135, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'White Mocha Syrup', v16: '30ml', v22: '40ml' }, { label: 'Condensed Milk', v16: '20ml', v22: '30ml' },
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' },
+    { label: 'Vanilla Syrup', v16: '2 pumps', v22: '3 pumps' } ] }] },
+  { name: 'Mocha Latte', price16: 100, price22: 135, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Chocolate Syrup', v16: '30ml', v22: '40ml' },
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' },
+    { label: 'Vanilla Syrup', v16: '2 pumps', v22: '3 pumps' } ] }] },
+  { name: 'Spanish Latte', price16: 100, price22: 135, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Condensed Milk', v16: '30ml', v22: '40ml' },
+    { label: 'Espresso', v16: '30ml', v22: '40ml' } ] }] },
+  { name: 'Hazelnut Latte', price16: 100, price22: 135, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Condensed Milk', v16: '10ml', v22: '15ml' }, { label: 'Hazelnut Syrup', v16: '2 pumps', v22: '3 pumps' },
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' } ] }] },
+  { name: 'Sea Salt Latte', price16: 110, price22: 145, variants: ['Hot', 'Iced'], recipe: [
+    { title: 'Base (Spanish Latte)', rows: [
+      { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Condensed Milk', v16: '30ml', v22: '40ml' },
+      { label: 'Espresso', v16: '30ml', v22: '40ml' } ] },
+    SEA_SALT_TOPPING ] },
+  { name: 'Dirty Matcha Latte', price16: 130, price22: 165, variants: ['Hot', 'Iced'], recipe: [
+    { title: 'In Cup', rows: [
+      { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' },
+      { label: 'Espresso', v16: '30ml', v22: '40ml' } ] },
+    MATCHA_MIX ] },
+  { name: 'Biscoff Latte', price16: 145, price22: 180, variants: ['Hot', 'Iced'], recipe: [{ rows: [
+    { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' },
+    { label: 'Espresso', v16: '30ml', v22: '40ml' }, { label: 'Biscoff Spread', v16: '30ml', v22: '40ml' } ] }] },
+  { name: 'Dirty Matcha Biscoff', price16: 155, price22: 190, variants: ['Hot', 'Iced'], recipe: [
+    { title: 'In Cup', rows: [
+      { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' },
+      { label: 'Espresso', v16: '30ml', v22: '40ml' }, { label: 'Biscoff Spread', v16: '30ml', v22: '40ml' } ] },
+    MATCHA_MIX ] },
+  { name: 'Dirty Horchata', price: 160, variants: null, recipe: [{ rows: [
+    { label: 'Horchata Powder', v16: '40g', v22: '55g' }, { label: 'Hot Water', v16: '40ml', v22: '55ml' },
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Espresso', v16: '30ml', v22: '40ml' } ] }] }
+];
+
+const MILK_BASED = [
+  { name: 'Milky Strawberry', price16: 100, price22: 135, recipe: fruitPureeRecipe('Strawberry') },
+  { name: 'Milky Blueberry', price16: 100, price22: 135, recipe: fruitPureeRecipe('Blueberry') },
+  { name: 'Milky Mango', price16: 100, price22: 135, recipe: fruitPureeRecipe('Mango') },
+  { name: 'Milky Green Apple', price16: 100, price22: 135, recipe: fruitPureeRecipe('Green Apple') },
+  { name: 'Matcha Latte', price16: 110, price22: 145, recipe: [
+    { title: 'In Cup', rows: [
+      { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' } ] },
+    MATCHA_MIX ] },
+  { name: 'Sea Salt Matcha', price16: 120, price22: 155, recipe: [
+    { title: 'In Cup', rows: [
+      { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' } ] },
+    MATCHA_MIX, SEA_SALT_TOPPING ] },
+  { name: 'Mango Matcha', price16: 130, price22: 165, recipe: matchaFruitRecipe('Mango') },
+  { name: 'Strawberry Matcha', price16: 130, price22: 165, recipe: matchaFruitRecipe('Strawberry') },
+  { name: 'Blueberry Matcha', price16: 130, price22: 165, recipe: matchaFruitRecipe('Blueberry') },
+  { name: 'Biscoff Matcha', price16: 145, price22: 180, recipe: [
+    { title: 'In Cup', rows: [
+      { label: 'Condensed Milk', v16: '20ml', v22: '30ml' }, { label: 'Milk', v16: '150ml', v22: '205ml' },
+      { label: 'Biscoff Spread', v16: '30ml', v22: '40ml' } ] },
+    MATCHA_MIX ] },
+  { name: 'Choco Oreo', price16: 120, price22: 155, recipe: [{ rows: [
+    { label: 'Milk', v16: '150ml', v22: '205ml' }, { label: 'Oreo Crumbs', v16: '2 scoops', v22: '3 scoops' },
+    { label: 'Chocolate Syrup', v16: '30ml', v22: '40ml' }, { label: 'Condensed Milk', v16: '20ml', v22: '30ml' },
+    { label: 'Vanilla Syrup', v16: '2 pumps', v22: '3 pumps' } ] }] },
+  { name: 'Horchata', price: 150, recipe: [{ rows: [
+    { label: 'Horchata Powder', v16: '40g', v22: '55g' }, { label: 'Hot Water', v16: '40ml', v22: '55ml' },
+    { label: 'Milk', v16: '150ml', v22: '205ml' } ] }] }
+];
+
+const FRUIT_SODA = FRUIT_FLAVORS.map(f => ({ name: f, priceRegular: 50, priceYogurt: 60, recipe: FRUIT_SODA_RECIPE }));
+
+const LEMONADE = [
+  { name: 'Lemonade Regular', price: 50, recipe: [{ rows: [
+    { label: 'Orange', v16: '1 slice (squeezed)', v22: '1 slice (squeezed)' },
+    { label: 'Lemon Syrup', v16: '2 pumps', v22: '3 pumps' }, { label: 'Sugar Syrup', v16: '3 pumps', v22: '4 pumps' },
+    { label: 'Water', v16: '120ml', v22: '165ml' } ] }] },
+  { name: 'Lemonade Large', price: 80, recipe: [{ rows: [
+    { label: 'Orange', v16: '1 slice (squeezed)', v22: '1 slice (squeezed)' },
+    { label: 'Lemon Syrup', v16: '2 pumps', v22: '3 pumps' }, { label: 'Sugar Syrup', v16: '3 pumps', v22: '4 pumps' },
+    { label: 'Water', v16: '120ml', v22: '165ml' } ] }] }
+];
+
+const SILOG = ['Tapsilog', 'Bangsilog', 'Longsilog', 'Chicksilog', 'Cornsilog', 'Hotsilog', 'Hamsilog', 'Siosilog', 'Spamsilog']
+  .map(n => ({ name: n, price: 80 }));
+
+const RICE_BOWL = [
+  { name: 'Chow Fan', price: 75 },
+  { name: 'Pork Chow Fan', price: 75 }
+];
+
+const SNACKS = [
+  { name: 'Siomai', price: 20 }, { name: 'Fishball', price: 20 }, { name: 'Kikiam', price: 20 },
+  { name: 'Fries', price: 30 }, { name: 'Nachos', price: 50 }, { name: 'Pancit Canton', price: 30 },
+  { name: 'Beef Noodles', price: 30 }, { name: 'Chicken Noodles', price: 30 }, { name: 'Seafood Noodles', price: 35 },
+  { name: 'Jjampong', price: 35 }, { name: 'Jin Ramen', price: 70 }, { name: 'Arroz Caldo', price: 65 }
+];
+
+const ADDON_ITEMS = ADDONS.map(a => ({ name: a.name, price: a.price }));
+
+const CATEGORIES = [
+  { name: 'Coffee', items: COFFEE, type: 'coffee' },
+  { name: 'Milk Based', items: MILK_BASED, type: 'milkbased' },
+  { name: 'Fruit Soda', items: FRUIT_SODA, type: 'fruitsoda', customMix: true },
+  { name: 'Lemonade', items: LEMONADE, type: 'fixed' },
+  { name: 'Silog Meals', items: SILOG, type: 'fixed' },
+  { name: 'Rice Bowl', items: RICE_BOWL, type: 'fixed' },
+  { name: 'Snacks', items: SNACKS, type: 'fixed' },
+  { name: 'Add-ons', items: ADDON_ITEMS, type: 'fixed' }
+];
+
+const money = n => `₱${(Number(n) || 0).toFixed(2)}`;
+
+/* ══════════════════ RENDER: CATEGORY NAV + MENU ══════════════════ */
+const catNav = document.getElementById('catNav');
+const menuMain = document.getElementById('menuMain');
+const cardState = {}; // per-card selected size/variant
+
+CATEGORIES.forEach((cat, ci) => {
+  const pill = document.createElement('button');
+  pill.className = 'cat-pill' + (ci === 0 ? ' active' : '');
+  pill.textContent = cat.name;
+  pill.type = 'button';
+  pill.addEventListener('click', () => {
+    document.getElementById('sec-' + ci).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  catNav.appendChild(pill);
+
+  const section = document.createElement('section');
+  section.className = 'cat-section';
+  section.id = 'sec-' + ci;
+  section.innerHTML = `<h2>${cat.name}</h2><div class="item-grid" id="grid-${ci}"></div>`;
+  menuMain.appendChild(section);
+
+  const grid = section.querySelector('.item-grid');
+
+  if (cat.customMix) {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.innerHTML = `
+      <div class="top-row"><div class="name">Custom Mix</div>
+        <button class="recipe-btn" type="button" title="Recipe">👁</button></div>
+      <div class="price">₱60.00</div>
+      <div style="font-size:.7rem; opacity:.6; font-weight:700;">Pick any 2 flavors</div>
+      <button class="add-btn" type="button">+ Add</button>`;
+    card.querySelector('.recipe-btn').addEventListener('click', () => openRecipe('Custom Mix', [{ rows: [
+      { label: 'Note', v16: 'Split syrup pumps evenly between the 2 chosen flavors', v22: 'Split syrup pumps evenly between the 2 chosen flavors' },
+      { label: 'Soda', v16: '180ml', v22: '250ml' } ] }]));
+    card.querySelector('.add-btn').addEventListener('click', () => openCustomMix());
+    grid.appendChild(card);
+  }
+
+  cat.items.forEach((item, ii) => {
+    const key = `${ci}-${ii}`;
+    grid.appendChild(buildItemCard(cat, item, key));
+  });
+});
+
+function buildItemCard(cat, item, key) {
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  const hasSize = item.price16 !== undefined;
+  const hasVariantPrice = item.priceRegular !== undefined;
+  const hasHotIced = !!item.variants;
+
+  if (hasSize) cardState[key] = { size: '16' };
+  if (hasHotIced) cardState[key] = { ...cardState[key], variant: item.variants[0] };
+  if (hasVariantPrice) cardState[key] = { variant: 'Regular' };
+
+  function currentPrice() {
+    if (hasSize) return cardState[key].size === '16' ? item.price16 : item.price22;
+    if (hasVariantPrice) return cardState[key].variant === 'Regular' ? item.priceRegular : item.priceYogurt;
+    return item.price;
+  }
+
+  const priceEl = document.createElement('div');
+  priceEl.className = 'price';
+  priceEl.textContent = money(currentPrice());
+
+  const topRow = document.createElement('div');
+  topRow.className = 'top-row';
+  topRow.innerHTML = `<div class="name">${escapeHtml(item.name)}</div>`;
+  if (item.recipe) {
+    const rBtn = document.createElement('button');
+    rBtn.className = 'recipe-btn';
+    rBtn.type = 'button';
+    rBtn.title = 'Recipe';
+    rBtn.textContent = '👁';
+    rBtn.addEventListener('click', () => openRecipe(item.name, item.recipe));
+    topRow.appendChild(rBtn);
+  }
+
+  card.appendChild(topRow);
+  card.appendChild(priceEl);
+
+  if (hasSize) {
+    const sizeToggle = document.createElement('div');
+    sizeToggle.className = 'toggle-group';
+    ['16', '22'].forEach(sz => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'toggle-btn' + (cardState[key].size === sz ? ' active' : '');
+      b.textContent = sz + 'oz';
+      b.addEventListener('click', () => {
+        cardState[key].size = sz;
+        sizeToggle.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        priceEl.textContent = money(currentPrice());
+      });
+      sizeToggle.appendChild(b);
+    });
+    card.appendChild(sizeToggle);
+  }
+
+  if (hasHotIced) {
+    const varToggle = document.createElement('div');
+    varToggle.className = 'toggle-group';
+    item.variants.forEach(v => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'toggle-btn' + (cardState[key].variant === v ? ' active' : '');
+      b.textContent = v;
+      b.addEventListener('click', () => {
+        cardState[key].variant = v;
+        varToggle.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+      });
+      varToggle.appendChild(b);
+    });
+    card.appendChild(varToggle);
+  }
+
+  if (hasVariantPrice) {
+    const varToggle = document.createElement('div');
+    varToggle.className = 'toggle-group';
+    ['Regular', 'Yogurt'].forEach(v => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'toggle-btn' + (cardState[key].variant === v ? ' active' : '');
+      b.textContent = v;
+      b.addEventListener('click', () => {
+        cardState[key].variant = v;
+        varToggle.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        priceEl.textContent = money(currentPrice());
+      });
+      varToggle.appendChild(b);
+    });
+    card.appendChild(varToggle);
+  }
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.type = 'button';
+  addBtn.textContent = '+ Add';
+  addBtn.addEventListener('click', () => {
+    addToCart({
+      name: item.name,
+      category: cat.name,
+      size: hasSize ? cardState[key].size + 'oz' : null,
+      variant: hasHotIced || hasVariantPrice ? cardState[key].variant : null,
+      unitPrice: currentPrice(),
+      addons: [],
+      notes: ''
+    });
+    addBtn.classList.remove('add-flash'); void addBtn.offsetWidth; addBtn.classList.add('add-flash');
+  });
+  card.appendChild(addBtn);
+
+  return card;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ══════════════════ CART STATE ══════════════════ */
+let cart = [];
+let editingOrder = null; // { id, order_number, ...original order row } when editing
+
+function genUid() {
+  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+}
+
+function addToCart(entry) {
+  cart.push({
+    uid: genUid(),
+    name: entry.name,
+    category: entry.category,
+    size: entry.size,
+    variant: entry.variant,
+    unitPrice: entry.unitPrice,
+    addons: entry.addons || [],
+    notes: entry.notes || '',
+    qty: 1
+  });
+  renderCart();
+}
+
+function lineTotal(ci) {
+  const addonsSum = ci.addons.reduce((s, a) => s + a.price, 0);
+  return (ci.unitPrice + addonsSum) * ci.qty;
+}
+
+function cartSubtotal() {
+  return cart.reduce((s, ci) => s + lineTotal(ci), 0);
+}
+
+function computeDiscount(subtotal) {
+  const type = document.getElementById('discountType').value;
+  const val = parseFloat(document.getElementById('discountValue').value) || 0;
+  if (type === 'fixed') return Math.min(val, subtotal);
+  if (type === 'percentage') return Math.min(subtotal * (val / 100), subtotal);
+  return 0;
+}
+
+function renderCartBar() {
+  const count = cart.reduce((s, c) => s + c.qty, 0);
+  const subtotal = cartSubtotal();
+  const discount = computeDiscount(subtotal);
+  document.getElementById('cartCount').textContent = `${count} item${count === 1 ? '' : 's'}`;
+  document.getElementById('cartBarTotal').textContent = money(subtotal - discount);
+}
+
+function renderCart() {
+  renderCartBar();
+  const list = document.getElementById('cartItemsList');
+  list.innerHTML = '';
+
+  if (cart.length === 0) {
+    list.innerHTML = '<div class="empty-state">Your cart is empty.</div>';
+  } else {
+    cart.forEach(ci => {
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      const addonsTxt = ci.addons.length ? ci.addons.map(a => a.name).join(', ') : '';
+      const metaParts = [ci.size, ci.variant].filter(Boolean);
+      row.innerHTML = `
+        <div class="head">
+          <div>
+            <div class="name">${escapeHtml(ci.name)}</div>
+            ${metaParts.length ? `<div class="meta">${metaParts.map(escapeHtml).join(' · ')}</div>` : ''}
+            ${addonsTxt ? `<div class="meta">+ ${escapeHtml(addonsTxt)}</div>` : ''}
+            ${ci.notes ? `<div class="note">"${escapeHtml(ci.notes)}"</div>` : ''}
+          </div>
+          <div class="line-total">${money(lineTotal(ci))}</div>
+        </div>
+        <div class="foot">
+          <div class="qty-group">
+            <button class="qty-btn" data-action="dec">−</button>
+            <span class="qty-val">${ci.qty}</span>
+            <button class="qty-btn" data-action="inc">+</button>
+          </div>
+          <div class="actions">
+            <button class="link-btn" data-action="edit">Add-ons / Note</button>
+            <button class="link-btn remove" data-action="remove">Remove</button>
+          </div>
+        </div>`;
+      row.querySelector('[data-action="dec"]').addEventListener('click', () => {
+        ci.qty = Math.max(1, ci.qty - 1);
+        renderCart();
+      });
+      row.querySelector('[data-action="inc"]').addEventListener('click', () => {
+        ci.qty++;
+        renderCart();
+      });
+      row.querySelector('[data-action="edit"]').addEventListener('click', () => openItemOptions(ci));
+      row.querySelector('[data-action="remove"]').addEventListener('click', () => {
+        cart = cart.filter(x => x.uid !== ci.uid);
+        renderCart();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  const subtotal = cartSubtotal();
+  const discount = computeDiscount(subtotal);
+  document.getElementById('sumSubtotal').textContent = money(subtotal);
+  document.getElementById('sumDiscount').textContent = '-' + money(discount);
+  document.getElementById('sumTotal').textContent = money(subtotal - discount);
+}
+
+document.getElementById('discountType').addEventListener('change', renderCart);
+document.getElementById('discountValue').addEventListener('input', renderCart);
+
+/* ══════════════════ CART SHEET open/close ══════════════════ */
+const cartModal = document.getElementById('cartModal');
+document.getElementById('openCartBtn').addEventListener('click', () => { renderCart(); cartModal.classList.add('show'); });
+document.getElementById('closeCartBtn').addEventListener('click', () => cartModal.classList.remove('show'));
+
+document.getElementById('clearCartBtn').addEventListener('click', () => {
+  cart = [];
+  renderCart();
+});
+
+/* ══════════════════ ITEM OPTIONS MODAL ══════════════════ */
+const itemOptionsModal = document.getElementById('itemOptionsModal');
+let itemOptionsTarget = null;
+
+function openItemOptions(ci) {
+  itemOptionsTarget = ci;
+  document.getElementById('itemOptionsTitle').textContent = ci.name;
+  document.getElementById('itemNote').value = ci.notes || '';
+
+  const list = document.getElementById('itemAddonList');
+  list.innerHTML = '';
+  ADDONS.forEach(a => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'addon-chip' + (ci.addons.some(x => x.id === a.id) ? ' active' : '');
+    chip.textContent = `${a.name} +₱${a.price}`;
+    chip.dataset.id = a.id;
+    chip.addEventListener('click', () => chip.classList.toggle('active'));
+    list.appendChild(chip);
+  });
+
+  itemOptionsModal.classList.add('show');
+}
+
+document.getElementById('closeItemOptionsBtn').addEventListener('click', () => itemOptionsModal.classList.remove('show'));
+
+document.getElementById('saveItemOptionsBtn').addEventListener('click', () => {
+  if (!itemOptionsTarget) return;
+  const selected = Array.from(document.querySelectorAll('#itemAddonList .addon-chip.active')).map(c => c.dataset.id);
+  itemOptionsTarget.addons = ADDONS.filter(a => selected.includes(a.id));
+  itemOptionsTarget.notes = document.getElementById('itemNote').value.trim();
+  itemOptionsModal.classList.remove('show');
+  renderCart();
+});
+
+/* ══════════════════ CUSTOM MIX MODAL ══════════════════ */
+const customMixModal = document.getElementById('customMixModal');
+let selectedFlavors = [];
+
+function openCustomMix() {
+  selectedFlavors = [];
+  document.getElementById('customMixMsg').className = 'msg';
+  const list = document.getElementById('flavorList');
+  list.innerHTML = '';
+  FRUIT_FLAVORS.forEach(f => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'flavor-chip';
+    chip.textContent = f;
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('active')) {
+        chip.classList.remove('active');
+        selectedFlavors = selectedFlavors.filter(x => x !== f);
+      } else {
+        if (selectedFlavors.length >= 2) return;
+        chip.classList.add('active');
+        selectedFlavors.push(f);
+      }
+      updateFlavorDisabled();
+    });
+    list.appendChild(chip);
+  });
+  customMixModal.classList.add('show');
+}
+
+function updateFlavorDisabled() {
+  const full = selectedFlavors.length >= 2;
+  document.querySelectorAll('#flavorList .flavor-chip').forEach(chip => {
+    if (!chip.classList.contains('active')) chip.disabled = full;
+  });
+}
+
+document.getElementById('closeCustomMixBtn').addEventListener('click', () => customMixModal.classList.remove('show'));
+
+document.getElementById('addCustomMixBtn').addEventListener('click', () => {
+  if (selectedFlavors.length !== 2) {
+    const msg = document.getElementById('customMixMsg');
+    msg.textContent = 'Please select exactly 2 flavors';
+    msg.className = 'msg show error';
+    return;
+  }
+  addToCart({
+    name: `Custom Mix: ${selectedFlavors[0]} + ${selectedFlavors[1]}`,
+    category: 'Fruit Soda',
+    size: null,
+    variant: null,
+    unitPrice: 60,
+    addons: [],
+    notes: ''
+  });
+  customMixModal.classList.remove('show');
+});
+
+/* ══════════════════ RECIPE MODAL ══════════════════ */
+const recipeModal = document.getElementById('recipeModal');
+let currentRecipe = null;
+let recipeSize = '16';
+
+function openRecipe(name, recipe) {
+  currentRecipe = recipe;
+  recipeSize = '16';
+  document.getElementById('recipeTitle').textContent = name;
+  document.getElementById('recipeSize16').classList.add('active');
+  document.getElementById('recipeSize22').classList.remove('active');
+  renderRecipeBody();
+  recipeModal.classList.add('show');
+}
+
+function renderRecipeBody() {
+  const body = document.getElementById('recipeBody');
+  body.innerHTML = '';
+  currentRecipe.forEach(group => {
+    const g = document.createElement('div');
+    g.className = 'recipe-group';
+    if (group.title) g.innerHTML = `<h4>${escapeHtml(group.title)}</h4>`;
+    group.rows.forEach(row => {
+      const r = document.createElement('div');
+      r.className = 'recipe-row';
+      r.innerHTML = `<span>${escapeHtml(row.label)}</span><span>${escapeHtml(recipeSize === '16' ? row.v16 : row.v22)}</span>`;
+      g.appendChild(r);
+    });
+    body.appendChild(g);
+  });
+}
+
+document.getElementById('recipeSize16').addEventListener('click', () => {
+  recipeSize = '16';
+  document.getElementById('recipeSize16').classList.add('active');
+  document.getElementById('recipeSize22').classList.remove('active');
+  renderRecipeBody();
+});
+document.getElementById('recipeSize22').addEventListener('click', () => {
+  recipeSize = '22';
+  document.getElementById('recipeSize22').classList.add('active');
+  document.getElementById('recipeSize16').classList.remove('active');
+  renderRecipeBody();
+});
+document.getElementById('closeRecipeBtn').addEventListener('click', () => recipeModal.classList.remove('show'));
+
+/* ══════════════════ ORDER SETUP ══════════════════ */
+let orderType = null;
+document.querySelectorAll('.order-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    orderType = btn.dataset.type;
+  });
+});
+
+/* ══════════════════ CHECKOUT ══════════════════ */
+const checkoutModal = document.getElementById('checkoutModal');
+let payMethod = 'cash';
+
+document.getElementById('checkoutBtn').addEventListener('click', () => {
+  const msg = document.getElementById('cartMsg');
+  msg.className = 'msg';
+  const setupMsg = document.getElementById('orderSetupMsg');
+  setupMsg.className = 'msg';
+  const customerName = document.getElementById('customerName').value.trim();
+
+  if (cart.length === 0) { msg.textContent = 'Your cart is empty'; msg.className = 'msg show error'; return; }
+
+  // Customer name / order type live outside the cart sheet, so close it first
+  // or the staff can't reach the fields the error is telling them to fix.
+  if (!customerName || !orderType) {
+    cartModal.classList.remove('show');
+    setupMsg.textContent = !customerName ? 'Please enter a customer name' : 'Please select an order type';
+    setupMsg.className = 'msg show error';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  cartModal.classList.remove('show');
+  openCheckout();
+});
+
+function openCheckout() {
+  payMethod = 'cash';
+  document.getElementById('payCashBtn').classList.add('active');
+  document.getElementById('payGcashBtn').classList.remove('active');
+  document.getElementById('cashFields').style.display = '';
+  document.getElementById('gcashFields').style.display = 'none';
+  document.getElementById('cashReceived').value = '';
+  document.getElementById('gcashRef').value = '';
+  document.getElementById('checkoutMsg').className = 'msg';
+  updateChange();
+
+  const isEdit = !!editingOrder;
+  document.getElementById('payMethodSection').style.display = isEdit ? 'none' : '';
+  document.getElementById('confirmOrderBtn').textContent = isEdit ? 'Save Changes' : 'Confirm Order';
+
+  const subtotal = cartSubtotal();
+  const discount = computeDiscount(subtotal);
+  const total = subtotal - discount;
+
+  const summary = document.getElementById('checkoutSummary');
+  const customerName = document.getElementById('customerName').value.trim();
+  const typeLabel = { dine_in: 'Dine In', takeout: 'Takeout', delivery: 'Delivery' }[orderType];
+
+  let html = `<div class="summary-row"><span>Customer</span><span>${escapeHtml(customerName)}</span></div>`;
+  html += `<div class="summary-row"><span>Order Type</span><span>${typeLabel}</span></div><hr style="border:none;border-top:1px dashed #eee3c8;margin:.6rem 0;">`;
+  cart.forEach(ci => {
+    const meta = [ci.size, ci.variant].filter(Boolean).join(' · ');
+    html += `<div class="summary-row"><span>${ci.qty}× ${escapeHtml(ci.name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''}</span><span>${money(lineTotal(ci))}</span></div>`;
+    if (ci.addons.length) html += `<div class="receipt-sub">+ ${ci.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+    if (ci.notes) html += `<div class="receipt-sub">"${escapeHtml(ci.notes)}"</div>`;
+  });
+  html += `<div class="summary-row" style="margin-top:.5rem;"><span>Subtotal</span><span>${money(subtotal)}</span></div>`;
+  html += `<div class="summary-row"><span>Discount</span><span>-${money(discount)}</span></div>`;
+  html += `<div class="summary-row total"><span>Total</span><span>${money(total)}</span></div>`;
+  if (isEdit) html += `<div class="msg show success" style="margin-top:.8rem;">Payment details from the original order are kept as-is.</div>`;
+  summary.innerHTML = html;
+
+  checkoutModal.classList.add('show');
+}
+
+document.getElementById('closeCheckoutBtn').addEventListener('click', () => checkoutModal.classList.remove('show'));
+
+document.getElementById('payCashBtn').addEventListener('click', () => {
+  payMethod = 'cash';
+  document.getElementById('payCashBtn').classList.add('active');
+  document.getElementById('payGcashBtn').classList.remove('active');
+  document.getElementById('cashFields').style.display = '';
+  document.getElementById('gcashFields').style.display = 'none';
+});
+document.getElementById('payGcashBtn').addEventListener('click', () => {
+  payMethod = 'gcash';
+  document.getElementById('payGcashBtn').classList.add('active');
+  document.getElementById('payCashBtn').classList.remove('active');
+  document.getElementById('gcashFields').style.display = '';
+  document.getElementById('cashFields').style.display = 'none';
+});
+
+function currentTotal() {
+  const subtotal = cartSubtotal();
+  return subtotal - computeDiscount(subtotal);
+}
+
+function updateChange() {
+  const received = parseFloat(document.getElementById('cashReceived').value) || 0;
+  const change = received - currentTotal();
+  const box = document.getElementById('changeAmount');
+  box.textContent = money(change);
+  document.getElementById('changeBox').classList.toggle('negative', change < 0);
+}
+document.getElementById('cashReceived').addEventListener('input', updateChange);
+
+document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('checkoutMsg');
+  msg.className = 'msg';
+  const subtotal = cartSubtotal();
+  const discount = computeDiscount(subtotal);
+  const total = subtotal - discount;
+  const discountType = document.getElementById('discountType').value;
+
+  const btn = document.getElementById('confirmOrderBtn');
+
+  if (editingOrder) {
+    btn.disabled = true;
+    try {
+      await saveEditedOrder({ subtotal, discount, total, discountType });
+      checkoutModal.classList.remove('show');
+    } catch (e) {
+      msg.textContent = 'Failed to save changes. Please try again.';
+      msg.className = 'msg show error';
+      console.error(e);
+    }
+    btn.disabled = false;
+    return;
+  }
+
+  let cashReceived = null, changeGiven = null, gcashRef = null;
+
+  if (payMethod === 'cash') {
+    cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+    if (cashReceived < total) { msg.textContent = 'Insufficient cash received'; msg.className = 'msg show error'; return; }
+    changeGiven = cashReceived - total;
+  } else {
+    gcashRef = document.getElementById('gcashRef').value.trim();
+    if (!gcashRef) { msg.textContent = 'GCash reference number is required'; msg.className = 'msg show error'; return; }
+  }
+
+  btn.disabled = true;
+
+  try {
+    const { data: orderNumData, error: onErr } = await insforge.database.rpc('next_order_number');
+    if (onErr) throw onErr;
+    const orderNumber = orderNumData;
+
+    const customerName = document.getElementById('customerName').value.trim();
+
+    const { data: orderRows, error: orderErr } = await insforge.database.from('orders').insert([{
+      order_number: orderNumber,
+      staff_id: session.staffId,
+      staff_name: session.staffName,
+      customer_name: customerName,
+      order_type: orderType,
+      subtotal, discount_amount: discount, discount_type: discountType, total,
+      payment_method: payMethod,
+      cash_received: cashReceived, change_given: changeGiven, gcash_reference: gcashRef,
+      status: 'active'
+    }]).select();
+    if (orderErr) throw orderErr;
+
+    const order = orderRows[0];
+
+    const itemRows = cart.map(ci => ({
+      order_id: order.id,
+      item_name: ci.name, category: ci.category, size: ci.size, variant: ci.variant,
+      addons: ci.addons, notes: ci.notes || null,
+      unit_price: ci.unitPrice, quantity: ci.qty, line_total: lineTotal(ci)
+    }));
+    const { error: itemsErr } = await insforge.database.from('order_items').insert(itemRows);
+    if (itemsErr) throw itemsErr;
+
+    checkoutModal.classList.remove('show');
+    showReceipt(order, cart.map(ci => ({ ...ci })), { customerName, orderType });
+    resetForNewOrder();
+  } catch (e) {
+    msg.textContent = 'Failed to save order. Please try again.';
+    msg.className = 'msg show error';
+    console.error(e);
+  }
+  btn.disabled = false;
+});
+
+function resetForNewOrder() {
+  cart = [];
+  document.getElementById('customerName').value = '';
+  document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('active'));
+  orderType = null;
+  document.getElementById('discountType').value = 'none';
+  document.getElementById('discountValue').value = '';
+  editingOrder = null;
+  document.getElementById('editBanner').classList.remove('show');
+  renderCart();
+}
+
+/* ══════════════════ RECEIPT ══════════════════ */
+const receiptModal = document.getElementById('receiptModal');
+
+function showReceipt(order, items, meta) {
+  const typeLabel = { dine_in: 'Dine In', takeout: 'Takeout', delivery: 'Delivery' }[order.order_type];
+  const ts = new Date(order.timestamp || order.created_at || Date.now()).toLocaleString('en-PH');
+
+  let html = `
+    <div class="r-header">
+      <div class="logo-text">Cup of <span>Joy</span></div>
+    </div>
+    <div class="r-meta">${escapeHtml(order.order_number)}<br>${ts}</div>
+    <div class="receipt-line"><span>Staff</span><span>${escapeHtml(order.staff_name)}</span></div>
+    <div class="receipt-line"><span>Customer</span><span>${escapeHtml(order.customer_name)}</span></div>
+    <div class="receipt-line"><span>Order Type</span><span>${typeLabel}</span></div>
+    <hr>`;
+
+  items.forEach(ci => {
+    const meta2 = [ci.size, ci.variant].filter(Boolean).join(' · ');
+    html += `<div class="receipt-line"><span>${ci.qty}× ${escapeHtml(ci.name)}</span><span>${money(ci.line_total ?? lineTotal(ci))}</span></div>`;
+    if (meta2) html += `<div class="receipt-sub">${escapeHtml(meta2)}</div>`;
+    if (ci.addons?.length) html += `<div class="receipt-sub">+ ${ci.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+    if (ci.notes) html += `<div class="receipt-sub">"${escapeHtml(ci.notes)}"</div>`;
+  });
+
+  html += `<hr>
+    <div class="receipt-line"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
+    <div class="receipt-line"><span>Discount</span><span>-${money(order.discount_amount)}</span></div>
+    <div class="receipt-line" style="font-size:1rem;"><span>Total</span><span>${money(order.total)}</span></div>
+    <hr>
+    <div class="receipt-line"><span>Payment</span><span>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</span></div>`;
+
+  if (order.payment_method === 'cash') {
+    html += `<div class="receipt-line"><span>Received</span><span>${money(order.cash_received)}</span></div>
+      <div class="receipt-line"><span>Change</span><span>${money(order.change_given)}</span></div>`;
+  } else {
+    html += `<div class="receipt-line"><span>Reference #</span><span>${escapeHtml(order.gcash_reference || '')}</span></div>`;
+  }
+
+  html += `<div class="receipt-thanks">Thank you for choosing Cup of Joy! ☕💛</div>`;
+
+  document.getElementById('receiptBox').innerHTML = html;
+  receiptModal.classList.add('show');
+}
+
+document.getElementById('closeReceiptBtn').addEventListener('click', () => receiptModal.classList.remove('show'));
+document.getElementById('receiptNewOrderBtn').addEventListener('click', () => receiptModal.classList.remove('show'));
+document.getElementById('receiptPrintBtn').addEventListener('click', () => window.print());
+
+/* ══════════════════ HISTORY (current shift) ══════════════════ */
+const historyModal = document.getElementById('historyModal');
+
+document.getElementById('historyBtn').addEventListener('click', async () => {
+  await loadHistory();
+  historyModal.classList.add('show');
+});
+document.getElementById('closeHistoryBtn').addEventListener('click', () => historyModal.classList.remove('show'));
+
+async function loadHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div class="empty-state">Loading…</div>';
+
+  const shiftStart = new Date(session.loginAt).toISOString();
+  const { data, error } = await insforge.database
+    .from('orders')
+    .select('*')
+    .eq('staff_id', session.staffId)
+    .gte('created_at', shiftStart)
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<div class="empty-state">No orders yet this shift.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  data.forEach(order => list.appendChild(buildHistoryRow(order)));
+}
+
+function buildHistoryRow(order) {
+  const row = document.createElement('div');
+  row.className = 'history-item';
+  const time = new Date(order.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+  row.innerHTML = `
+    <div class="head">
+      <div>
+        <div class="ordno">${escapeHtml(order.order_number)}</div>
+        <div class="meta">${escapeHtml(order.customer_name)} · ${time}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="total">${money(order.total)}</div>
+        <span class="status-badge ${order.status}">${order.status}</span>
+      </div>
+    </div>
+    <div class="history-detail" id="detail-${order.id}"></div>
+    <div class="history-actions">
+      <button data-action="expand" type="button">Details</button>
+      <button data-action="edit" type="button" ${order.status === 'voided' ? 'disabled' : ''}>Edit</button>
+      <button data-action="void" class="void" type="button" ${order.status === 'voided' ? 'disabled' : ''}>Void</button>
+      <button data-action="reprint" type="button">Reprint</button>
+    </div>`;
+
+  const detail = row.querySelector('.history-detail');
+
+  row.querySelector('[data-action="expand"]').addEventListener('click', async () => {
+    const showing = detail.classList.contains('show');
+    if (showing) { detail.classList.remove('show'); return; }
+    detail.innerHTML = '<div class="empty-state">Loading…</div>';
+    detail.classList.add('show');
+    const items = await fetchOrderItems(order.id);
+    detail.innerHTML = renderOrderItemsHtml(order, items);
+  });
+
+  row.querySelector('[data-action="edit"]').addEventListener('click', async () => {
+    const items = await fetchOrderItems(order.id);
+    startEditOrder(order, items);
+    historyModal.classList.remove('show');
+  });
+
+  row.querySelector('[data-action="void"]').addEventListener('click', () => openVoidConfirm(order.id));
+
+  row.querySelector('[data-action="reprint"]').addEventListener('click', async () => {
+    const items = await fetchOrderItems(order.id);
+    showReceipt(order, items.map(it => ({
+      name: it.item_name, size: it.size, variant: it.variant, addons: it.addons || [],
+      notes: it.notes, qty: it.quantity, line_total: it.line_total
+    })), {});
+  });
+
+  return row;
+}
+
+async function fetchOrderItems(orderId) {
+  const { data } = await insforge.database.from('order_items').select('*').eq('order_id', orderId);
+  return data || [];
+}
+
+function renderOrderItemsHtml(order, items) {
+  let html = '';
+  items.forEach(it => {
+    const meta = [it.size, it.variant].filter(Boolean).join(' · ');
+    html += `<div class="summary-row"><span>${it.quantity}× ${escapeHtml(it.item_name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''}</span><span>${money(it.line_total)}</span></div>`;
+    if (it.addons?.length) html += `<div class="receipt-sub">+ ${it.addons.map(a => escapeHtml(a.name)).join(', ')}</div>`;
+    if (it.notes) html += `<div class="receipt-sub">"${escapeHtml(it.notes)}"</div>`;
+  });
+  html += `<div class="summary-row" style="margin-top:.4rem;"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>`;
+  html += `<div class="summary-row"><span>Discount</span><span>-${money(order.discount_amount)}</span></div>`;
+  html += `<div class="summary-row total"><span>Total</span><span>${money(order.total)}</span></div>`;
+  html += `<div class="summary-row"><span>Payment</span><span>${order.payment_method === 'cash' ? 'Cash' : 'GCash'}</span></div>`;
+  return html;
+}
+
+/* ── Edit order ── */
+function startEditOrder(order, items) {
+  editingOrder = order;
+  cart = items.map(it => ({
+    uid: genUid(),
+    name: it.item_name, category: it.category, size: it.size, variant: it.variant,
+    unitPrice: Number(it.unit_price), addons: it.addons || [], notes: it.notes || '', qty: it.quantity
+  }));
+  document.getElementById('customerName').value = order.customer_name;
+  document.querySelectorAll('.order-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === order.order_type));
+  orderType = order.order_type;
+  document.getElementById('discountType').value = order.discount_type || 'none';
+  document.getElementById('discountValue').value = order.discount_type === 'percentage'
+    ? (order.subtotal > 0 ? ((order.discount_amount / order.subtotal) * 100).toFixed(2) : 0)
+    : order.discount_amount;
+
+  document.getElementById('editBannerText').textContent = `Editing order ${order.order_number}`;
+  document.getElementById('editBanner').classList.add('show');
+  renderCart();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+  resetForNewOrder();
+});
+
+async function saveEditedOrder({ subtotal, discount, total, discountType }) {
+  const customerName = document.getElementById('customerName').value.trim();
+
+  const updates = {
+    customer_name: customerName,
+    order_type: orderType,
+    subtotal, discount_amount: discount, discount_type: discountType, total,
+    change_given: editingOrder.payment_method === 'cash' ? (Number(editingOrder.cash_received) - total) : null,
+    status: 'edited',
+    edited_by: session.staffName,
+    edited_at: new Date().toISOString(),
+    edited_notes: 'Edited by staff'
+  };
+  // Only capture the pre-edit total the first time an order is edited, so
+  // repeated edits don't overwrite the true original with an already-edited value.
+  if (editingOrder.original_total == null) updates.original_total = Number(editingOrder.total);
+
+  const { error: updErr } = await insforge.database.from('orders').update(updates).eq('id', editingOrder.id);
+  if (updErr) { console.error(updErr); return; }
+
+  await insforge.database.from('order_items').delete().eq('order_id', editingOrder.id);
+  const itemRows = cart.map(ci => ({
+    order_id: editingOrder.id,
+    item_name: ci.name, category: ci.category, size: ci.size, variant: ci.variant,
+    addons: ci.addons, notes: ci.notes || null,
+    unit_price: ci.unitPrice, quantity: ci.qty, line_total: lineTotal(ci)
+  }));
+  if (itemRows.length) await insforge.database.from('order_items').insert(itemRows);
+
+  resetForNewOrder();
+}
+
+/* ── Void order ── */
+const voidModal = document.getElementById('voidModal');
+let voidTargetId = null;
+
+function openVoidConfirm(orderId) {
+  voidTargetId = orderId;
+  voidModal.classList.add('show');
+}
+document.getElementById('voidCancelBtn').addEventListener('click', () => voidModal.classList.remove('show'));
+document.getElementById('voidConfirmBtn').addEventListener('click', async () => {
+  if (!voidTargetId) return;
+  await insforge.database.from('orders').update({ status: 'voided' }).eq('id', voidTargetId);
+  voidModal.classList.remove('show');
+  loadHistory();
+});
+
+/* ══════════════════ INIT ══════════════════ */
+renderCart();
+</script>
+</body>
+</html>

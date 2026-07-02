@@ -738,7 +738,12 @@ const MILK_BASED = [
     { label: 'Milk', v16: '150ml', v22: '205ml' } ] }] }
 ];
 
-const FRUIT_SODA = FRUIT_FLAVORS.map(f => ({ name: f, priceRegular: 50, priceYogurt: 60, recipe: FRUIT_SODA_RECIPE }));
+const FRUIT_SODA = FRUIT_FLAVORS.map(f => ({
+  name: f,
+  price16Regular: 50, price16Yogurt: 60,
+  price22Regular: 70, price22Yogurt: 80,
+  recipe: FRUIT_SODA_RECIPE
+}));
 
 const LEMONADE = [
   { name: 'Lemonade Regular', price: 50, recipe: [{ rows: [
@@ -830,15 +835,21 @@ function buildItemCard(cat, item, key) {
   const card = document.createElement('div');
   card.className = 'item-card';
 
-  const hasSize = item.price16 !== undefined;
-  const hasVariantPrice = item.priceRegular !== undefined;
+  const hasSizeAndVariantPrice = item.price16Regular !== undefined;
+  const hasSize = item.price16 !== undefined || hasSizeAndVariantPrice;
+  const hasVariantPrice = item.priceRegular !== undefined || hasSizeAndVariantPrice;
   const hasHotIced = !!item.variants;
 
   if (hasSize) cardState[key] = { size: '16' };
   if (hasHotIced) cardState[key] = { ...cardState[key], variant: item.variants[0] };
-  if (hasVariantPrice) cardState[key] = { variant: 'Regular' };
+  if (hasVariantPrice) cardState[key] = { ...cardState[key], variant: 'Regular' };
 
   function currentPrice() {
+    if (hasSizeAndVariantPrice) {
+      const sz = cardState[key].size, v = cardState[key].variant;
+      if (sz === '16') return v === 'Regular' ? item.price16Regular : item.price16Yogurt;
+      return v === 'Regular' ? item.price22Regular : item.price22Yogurt;
+    }
     if (hasSize) return cardState[key].size === '16' ? item.price16 : item.price22;
     if (hasVariantPrice) return cardState[key].variant === 'Regular' ? item.priceRegular : item.priceYogurt;
     return item.price;

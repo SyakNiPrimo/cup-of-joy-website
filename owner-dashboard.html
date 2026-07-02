@@ -570,8 +570,10 @@ const FLAT_MENU = (() => {
   opts.push({ label: 'Horchata', category: 'Milk Based', size: null, variant: null, price: 150 });
 
   ['Peach Mango', 'Peach', 'Mango', 'Lychee', 'Grapes', 'Green Apple', 'Strawberry', 'Blueberry', 'Lemon'].forEach(f => {
-    opts.push({ label: `${f} Regular`, category: 'Fruit Soda', size: null, variant: 'Regular', price: 50 });
-    opts.push({ label: `${f} Yogurt`, category: 'Fruit Soda', size: null, variant: 'Yogurt', price: 60 });
+    opts.push({ label: `${f} 16oz Regular`, category: 'Fruit Soda', size: '16oz', variant: 'Regular', price: 50 });
+    opts.push({ label: `${f} 16oz Yogurt`, category: 'Fruit Soda', size: '16oz', variant: 'Yogurt', price: 60 });
+    opts.push({ label: `${f} 22oz Regular`, category: 'Fruit Soda', size: '22oz', variant: 'Regular', price: 70 });
+    opts.push({ label: `${f} 22oz Yogurt`, category: 'Fruit Soda', size: '22oz', variant: 'Yogurt', price: 80 });
   });
 
   opts.push({ label: 'Lemonade Regular', category: 'Lemonade', size: null, variant: null, price: 50 });

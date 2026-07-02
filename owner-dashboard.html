@@ -161,6 +161,29 @@
   .biz-info-row span:first-child { opacity: .6; }
 
   .loading { text-align: center; font-weight: 700; opacity: .5; padding: 2rem; }
+
+  /* ── ONLINE ORDERS ── */
+  .ool-badge {
+    display: inline-block; background: var(--red); color: #fff; font-size: .64rem; font-weight: 900;
+    border-radius: 50px; padding: .1rem .45rem; margin-left: .35rem; vertical-align: 2px;
+  }
+  .ool-card { background: #fff; border-radius: 14px; padding: 1.1rem 1.2rem; box-shadow: 0 4px 14px rgba(61,32,0,.06); margin-bottom: .9rem; }
+  .ool-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .8rem; flex-wrap: wrap; margin-bottom: .5rem; }
+  .ool-num { font-weight: 900; font-size: .95rem; }
+  .ool-sub { font-size: .78rem; font-weight: 700; opacity: .65; margin-top: .15rem; }
+  .ool-meta { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .78rem; font-weight: 700; opacity: .75; margin-bottom: .5rem; }
+  .ool-items { font-size: .78rem; font-weight: 600; opacity: .7; margin-bottom: .5rem; line-height: 1.5; }
+  .ool-total { font-weight: 900; font-size: .95rem; color: var(--brown-light); margin-bottom: .7rem; }
+  .ool-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .ool-actions select { padding: .45rem .6rem; font-size: .76rem; }
+  .status-badge.Pending { background: #fff3cd; color: #8a6d00; }
+  .status-badge.Confirmed { background: #e3f2fd; color: #1565c0; }
+  .status-badge.Preparing { background: #fde7c8; color: #a05a00; }
+  .status-badge.Ready-for-Pickup, .status-badge.Out-for-Delivery { background: #e0e7ff; color: #3f3fae; }
+  .status-badge.Completed { background: #e8f5e9; color: var(--green); }
+  .status-badge.Cancelled { background: #fdecea; color: var(--red); }
+  .paid-pill { font-size: .64rem; font-weight: 900; text-transform: uppercase; background: #e8f5e9; color: var(--green); padding: .18rem .5rem; border-radius: 50px; }
+  .gcash-screenshot { max-width: 240px; width: 100%; border-radius: 10px; margin-top: .6rem; display: block; }
 </style>
 </head>
 <body>
@@ -181,6 +204,7 @@
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="sales" type="button">Sales</button>
+  <button class="tab-btn" data-tab="online-orders" type="button">Online Orders <span id="onlineOrderBadge" class="ool-badge" style="display:none">0</span></button>
   <button class="tab-btn" data-tab="staff" type="button">Staff and Shifts</button>
   <button class="tab-btn" data-tab="salary" type="button">Salary</button>
   <button class="tab-btn" data-tab="settings" type="button">Settings</button>
@@ -250,6 +274,35 @@
         <thead><tr><th>Category</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
         <tbody id="categoryBreakdown"></tbody>
       </table></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ONLINE ORDERS TAB ═══════════════ -->
+  <div class="tab-panel" id="tab-online-orders">
+    <div class="card">
+      <div class="card-head">
+        <h2>Online Orders</h2>
+        <button class="btn btn-outline btn-sm" id="refreshOnlineOrdersBtn" type="button">Refresh</button>
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label for="oolStatusFilter">Status</label>
+          <select id="oolStatusFilter">
+            <option value="all">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Preparing">Preparing</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="oolDateFilter">Date</label>
+          <input type="date" id="oolDateFilter" />
+        </div>
+        <button class="btn btn-outline btn-sm" id="oolClearFilterBtn" type="button">Clear</button>
+      </div>
+      <div id="onlineOrdersList"><div class="loading">Loading…</div></div>
     </div>
   </div>
 
@@ -396,6 +449,30 @@
   </div>
 </div>
 
+<!-- ONLINE ORDER DETAIL MODAL -->
+<div class="modal-backdrop" id="onlineOrderModal">
+  <div class="modal wide">
+    <h3 id="onlineOrderModalTitle">Order Details</h3>
+    <div id="onlineOrderModalBody"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="onlineOrderModalCloseBtn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONLINE ORDER CANCEL MODAL -->
+<div class="modal-backdrop" id="onlineOrderCancelModal">
+  <div class="modal">
+    <h3>Cancel This Order?</h3>
+    <p>Let the customer know why. This reason is saved with the order.</p>
+    <div class="field"><label for="oolCancelReason">Cancellation Reason</label><textarea id="oolCancelReason" rows="3" style="width:100%;"></textarea></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="oolCancelDismissBtn" type="button">Never Mind</button>
+      <button class="btn btn-red" id="oolCancelConfirmBtn" type="button">Cancel Order</button>
+    </div>
+  </div>
+</div>
+
 <!-- SHIFT EDIT MODAL -->
 <div class="modal-backdrop" id="shiftEditModal">
   <div class="modal">
@@ -475,6 +552,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'online-orders') acknowledgeOnlineOrders();
   });
 });
 
@@ -1593,6 +1671,202 @@ document.getElementById('saveStockBtn').addEventListener('click', async () => {
 });
 
 /* ══════════════════════════════════════════════════════════════
+   ONLINE ORDERS TAB
+   ══════════════════════════════════════════════════════════════ */
+let onlineOrders = [];
+let onlineOrderItemsByOrder = {};
+const oolKnownIds = new Set();
+const oolAcknowledgedPendingIds = new Set();
+let oolFirstLoad = true;
+let oolCancelTargetId = null;
+
+const OOL_STATUS_OPTIONS = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed'];
+
+function playOnlineOrderChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1175].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + i * 0.18 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.18 + 0.32);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.34);
+    });
+  } catch { /* audio not available — ignore */ }
+}
+
+async function pollOnlineOrders() {
+  const { data, error } = await insforge.database
+    .from('online_orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  onlineOrders = data || [];
+
+  if (!oolFirstLoad) {
+    const newlyPending = onlineOrders.filter(o => o.status === 'Pending' && !oolKnownIds.has(o.id));
+    if (newlyPending.length) playOnlineOrderChime();
+  }
+  onlineOrders.forEach(o => oolKnownIds.add(o.id));
+  oolFirstLoad = false;
+
+  if (onlineOrders.length) {
+    const { data: items } = await insforge.database
+      .from('online_order_items')
+      .select('*')
+      .in('online_order_id', onlineOrders.map(o => o.id));
+    onlineOrderItemsByOrder = {};
+    (items || []).forEach(it => {
+      (onlineOrderItemsByOrder[it.online_order_id] ||= []).push(it);
+    });
+  } else {
+    onlineOrderItemsByOrder = {};
+  }
+
+  updateOnlineOrderBadge();
+  renderOnlineOrders();
+}
+
+function updateOnlineOrderBadge() {
+  const count = onlineOrders.filter(o => o.status === 'Pending' && !oolAcknowledgedPendingIds.has(o.id)).length;
+  const badge = document.getElementById('onlineOrderBadge');
+  if (count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; }
+  else badge.style.display = 'none';
+}
+
+function acknowledgeOnlineOrders() {
+  onlineOrders.filter(o => o.status === 'Pending').forEach(o => oolAcknowledgedPendingIds.add(o.id));
+  updateOnlineOrderBadge();
+}
+
+function itemsSummary(orderId) {
+  const items = onlineOrderItemsByOrder[orderId] || [];
+  return items.map(it => {
+    const meta = [it.size, it.variant].filter(Boolean).join(' ');
+    return `${it.item_name}${meta ? ' (' + meta + ')' : ''} ×${it.quantity}`;
+  }).join(', ');
+}
+
+function statusClass(status) { return String(status).replace(/\s+/g, '-'); }
+
+function renderOnlineOrders() {
+  const statusFilter = document.getElementById('oolStatusFilter').value;
+  const dateFilter = document.getElementById('oolDateFilter').value;
+  let list = onlineOrders;
+  if (statusFilter !== 'all') list = list.filter(o => o.status === statusFilter);
+  if (dateFilter) list = list.filter(o => o.scheduled_date === dateFilter);
+
+  const wrap = document.getElementById('onlineOrdersList');
+  if (!list.length) { wrap.innerHTML = '<div class="empty-state">No online orders found.</div>'; return; }
+
+  wrap.innerHTML = list.map(o => `
+    <div class="ool-card" data-id="${o.id}">
+      <div class="ool-head">
+        <div>
+          <div class="ool-num">${escapeHtml(o.order_number)}</div>
+          <div class="ool-sub">${escapeHtml(o.customer_name)} · ${escapeHtml(o.mobile_number)}</div>
+        </div>
+        <span class="badge status-badge ${statusClass(o.status)}">${escapeHtml(o.status)}</span>
+      </div>
+      <div class="ool-meta">
+        <span>${o.order_type === 'delivery' ? '🛵 Delivery' : '🏠 Pickup'}</span>
+        <span>🕒 ${o.scheduled_date} ${escapeHtml(o.scheduled_time)}</span>
+        <span>💳 ${o.payment_method === 'gcash' ? 'GCash' : 'COD'} ${o.payment_method === 'gcash' && o.is_paid ? '<span class="paid-pill">Paid</span>' : ''}</span>
+      </div>
+      <div class="ool-items">${escapeHtml(itemsSummary(o.id)) || '—'}</div>
+      <div class="ool-total">Total: ${money(o.grand_total)}</div>
+      <div class="ool-actions">
+        <select data-status-select ${o.status === 'Cancelled' ? 'disabled' : ''}>
+          ${OOL_STATUS_OPTIONS.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn btn-outline btn-sm" data-view type="button">View</button>
+        ${o.payment_method === 'gcash' && !o.is_paid ? `<button class="btn btn-sm" data-paid type="button">Mark Paid</button>` : ''}
+        ${o.status !== 'Cancelled' && o.status !== 'Completed' ? `<button class="btn btn-red btn-sm" data-cancel type="button">Cancel</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('.ool-card').forEach(card => {
+    const id = card.dataset.id;
+    const order = onlineOrders.find(o => o.id === id);
+    card.querySelector('[data-status-select]').addEventListener('change', async (e) => {
+      await insforge.database.from('online_orders').update({ status: e.target.value }).eq('id', id);
+      await pollOnlineOrders();
+    });
+    card.querySelector('[data-view]').addEventListener('click', () => openOnlineOrderModal(order));
+    const paidBtn = card.querySelector('[data-paid]');
+    if (paidBtn) paidBtn.addEventListener('click', async () => {
+      await insforge.database.from('online_orders').update({ is_paid: true }).eq('id', id);
+      await pollOnlineOrders();
+    });
+    const cancelBtn = card.querySelector('[data-cancel]');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => {
+      oolCancelTargetId = id;
+      document.getElementById('oolCancelReason').value = '';
+      document.getElementById('onlineOrderCancelModal').classList.add('show');
+    });
+  });
+}
+
+function openOnlineOrderModal(order) {
+  const items = onlineOrderItemsByOrder[order.id] || [];
+  document.getElementById('onlineOrderModalTitle').textContent = `Order ${order.order_number}`;
+  document.getElementById('onlineOrderModalBody').innerHTML = `
+    <div class="summary-row"><span>Customer</span><span>${escapeHtml(order.customer_name)}</span></div>
+    <div class="summary-row"><span>Mobile</span><span>${escapeHtml(order.mobile_number)}</span></div>
+    <div class="summary-row"><span>Type</span><span>${order.order_type === 'delivery' ? 'Delivery' : 'Pickup'}</span></div>
+    <div class="summary-row"><span>Scheduled</span><span>${order.scheduled_date} ${escapeHtml(order.scheduled_time)}</span></div>
+    ${order.order_type === 'delivery' ? `
+      <div class="summary-row"><span>Address</span><span>${escapeHtml(order.delivery_address || '—')}</span></div>
+      <div class="summary-row"><span>Barangay</span><span>${escapeHtml(order.barangay || '—')}</span></div>
+      <div class="summary-row"><span>Landmark</span><span>${escapeHtml(order.landmark || '—')}</span></div>
+      <div class="summary-row"><span>Distance</span><span>${order.distance_km != null ? order.distance_km + 'km' : '—'}</span></div>
+    ` : ''}
+    <hr style="margin:.7rem 0; border:none; border-top:1px dashed #ddd;">
+    ${items.map(it => {
+      const meta = [it.size, it.variant].filter(Boolean).join(' · ');
+      return `<div class="summary-row"><span>${escapeHtml(it.item_name)}${meta ? ' (' + escapeHtml(meta) + ')' : ''} ×${it.quantity}${it.notes ? '<br><span class="receipt-sub">Note: ' + escapeHtml(it.notes) + '</span>' : ''}</span><span>${money(it.line_total)}</span></div>`;
+    }).join('')}
+    <hr style="margin:.7rem 0; border:none; border-top:1px dashed #ddd;">
+    <div class="summary-row"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
+    ${order.order_type === 'delivery' ? `<div class="summary-row"><span>Delivery Fee</span><span>${money(order.delivery_fee)}</span></div>` : ''}
+    <div class="summary-row total"><span>Grand Total</span><span>${money(order.grand_total)}</span></div>
+    <div class="summary-row"><span>Payment</span><span>${order.payment_method === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup'} ${order.payment_method === 'gcash' && order.is_paid ? '<span class="paid-pill">Paid</span>' : ''}</span></div>
+    ${order.payment_method === 'gcash' ? `<div class="summary-row"><span>Reference #</span><span>${escapeHtml(order.gcash_reference || '—')}</span></div>` : ''}
+    ${order.gcash_screenshot_url ? `<div><label>Payment Screenshot</label><img class="gcash-screenshot" src="${order.gcash_screenshot_url}" alt="GCash payment screenshot" /></div>` : ''}
+    ${order.status === 'Cancelled' && order.cancelled_reason ? `<div class="summary-row"><span>Cancel Reason</span><span>${escapeHtml(order.cancelled_reason)}</span></div>` : ''}
+  `;
+  document.getElementById('onlineOrderModal').classList.add('show');
+}
+document.getElementById('onlineOrderModalCloseBtn').addEventListener('click', () => document.getElementById('onlineOrderModal').classList.remove('show'));
+
+document.getElementById('oolCancelDismissBtn').addEventListener('click', () => document.getElementById('onlineOrderCancelModal').classList.remove('show'));
+document.getElementById('oolCancelConfirmBtn').addEventListener('click', async () => {
+  if (!oolCancelTargetId) return;
+  const reason = document.getElementById('oolCancelReason').value.trim();
+  await insforge.database.from('online_orders').update({ status: 'Cancelled', cancelled_reason: reason || null }).eq('id', oolCancelTargetId);
+  document.getElementById('onlineOrderCancelModal').classList.remove('show');
+  oolCancelTargetId = null;
+  await pollOnlineOrders();
+});
+
+document.getElementById('oolStatusFilter').addEventListener('change', renderOnlineOrders);
+document.getElementById('oolDateFilter').addEventListener('change', renderOnlineOrders);
+document.getElementById('oolClearFilterBtn').addEventListener('click', () => {
+  document.getElementById('oolStatusFilter').value = 'all';
+  document.getElementById('oolDateFilter').value = '';
+  renderOnlineOrders();
+});
+document.getElementById('refreshOnlineOrdersBtn').addEventListener('click', pollOnlineOrders);
+
+setInterval(pollOnlineOrders, 30000);
+
+/* ══════════════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════════════ */
 (async () => {
@@ -1603,6 +1877,7 @@ document.getElementById('saveStockBtn').addEventListener('click', async () => {
   buildPeriodOptions();
   await loadSalaryTab();
   await loadSettings();
+  await pollOnlineOrders();
 })();
 </script>
 </body>

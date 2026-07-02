@@ -26,6 +26,7 @@ document.body.insertAdjacentHTML('afterbegin', `
   </div>
   <div class="nav-actions">
     <a href="menu.html" class="btn-order">Order Now</a>
+    <a href="order-online.html" class="btn-order-online">Order Online</a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -38,6 +39,7 @@ document.body.insertAdjacentHTML('afterbegin', `
   <a href="about.html"   class="${page === 'about'   ? 'active' : ''}">About</a>
   <a href="contact.html" class="${page === 'contact' ? 'active' : ''}">Contact</a>
   <a href="menu.html" class="btn-order">Order Now</a>
+  <a href="order-online.html" class="btn-order-online">Order Online</a>
 </div>
 `);
 

@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Order Online — Cup of Joy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --yellow: #FADA2A; --brown: #3D2000; --cream: #FFFDF0; --brown-light: #6b3a00;
+    --red: #C0392B; --green: #2E7D32; --grey: #9a8f78;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; padding-bottom: 6.5rem; }
+  button, select, input, textarea { font-family: 'Nunito', sans-serif; }
+  a { color: inherit; }
+
+  /* ── HEADER ── */
+  header.site-head {
+    background: var(--brown); color: var(--cream); padding: 1.1rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  header.site-head .brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; }
+  header.site-head img { height: 48px; }
+  header.site-head .brand-text { font-weight: 900; font-size: 1.15rem; color: var(--cream); }
+  header.site-head .brand-text span { color: var(--yellow); }
+  header.site-head .back-link {
+    font-weight: 800; font-size: .75rem; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--cream); opacity: .8; text-decoration: none;
+  }
+  header.site-head .back-link:hover { opacity: 1; }
+
+  .hero-block { text-align: center; padding: 1.75rem 1.25rem 1.25rem; }
+  .hero-block h1 { font-size: 1.7rem; font-weight: 900; margin-bottom: .5rem; }
+  .hours-notice {
+    display: inline-block; background: #fff; border: 2px solid var(--yellow); border-radius: 50px;
+    padding: .5rem 1.1rem; font-weight: 800; font-size: .78rem; color: var(--brown-light);
+  }
+
+  /* ── CLOSED SCREEN ── */
+  #closedScreen {
+    display: none; min-height: 70vh; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 2rem 1.5rem;
+  }
+  #closedScreen .icon { font-size: 3.2rem; margin-bottom: 1rem; }
+  #closedScreen h2 { font-size: 1.4rem; margin-bottom: .6rem; }
+  #closedScreen p { font-weight: 700; opacity: .75; max-width: 420px; line-height: 1.6; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { max-width: 720px; margin: 0 auto; padding: 1rem 1.25rem 0; }
+  .progress-label { font-weight: 800; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; opacity: .6; margin-bottom: .4rem; }
+  .progress-track { background: #eee3c8; border-radius: 50px; height: 8px; overflow: hidden; }
+  .progress-fill { background: var(--yellow); height: 100%; border-radius: 50px; transition: width .3s; }
+
+  main.steps-container { max-width: 720px; margin: 0 auto; padding: 1.25rem; }
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card { background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: 0 5px 18px rgba(61,32,0,.07); margin-bottom: 1.1rem; }
+  .card h2 { font-size: 1.05rem; margin-bottom: 1rem; }
+  .card h3 { font-size: .92rem; margin: 1rem 0 .6rem; }
+
+  /* ── STEP 1: ORDER TYPE ── */
+  .order-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .order-type-btn {
+    background: #fff; border: 3px solid #eee3c8; border-radius: 18px; padding: 1.8rem 1rem; text-align: center;
+    cursor: pointer; transition: border-color .2s, transform .15s, background .2s;
+  }
+  .order-type-btn .emoji { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
+  .order-type-btn .label { font-weight: 900; font-size: 1.05rem; }
+  .order-type-btn .sub { font-weight: 700; font-size: .74rem; opacity: .55; margin-top: .25rem; }
+  .order-type-btn:hover { transform: translateY(-2px); border-color: var(--yellow); }
+  .order-type-btn.selected { border-color: var(--brown); background: var(--yellow); }
+  @media (max-width: 480px) { .order-type-grid { grid-template-columns: 1fr; } }
+
+  /* ── FORMS ── */
+  label { display: block; font-weight: 800; font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; margin-bottom: .35rem; color: var(--brown-light); }
+  .field { margin-bottom: 1rem; }
+  input[type=text], input[type=tel], input[type=date], select, textarea {
+    width: 100%; padding: .7rem .85rem; border-radius: 10px; border: 2px solid #eee3c8;
+    background: var(--cream); color: var(--brown); font-weight: 700; font-size: .9rem; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--yellow); }
+  .field-error { color: var(--red); font-size: .74rem; font-weight: 700; margin-top: .3rem; display: none; }
+  .field-error.show { display: block; }
+  .hint { font-size: .74rem; font-weight: 700; opacity: .6; margin-top: .3rem; }
+
+  /* ── STEP 2: TIME SLOTS ── */
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .55rem; margin-top: .5rem; }
+  .slot-btn {
+    background: var(--cream); border: 2px solid #eee3c8; border-radius: 10px; padding: .55rem .3rem;
+    font-weight: 800; font-size: .78rem; cursor: pointer; text-align: center;
+  }
+  .slot-btn.selected { background: var(--brown); color: var(--yellow); border-color: var(--brown); }
+  .slot-btn:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+
+  /* ── DELIVERY FEE BOX ── */
+  .fee-box {
+    background: var(--cream); border: 2px dashed var(--yellow); border-radius: 12px; padding: .9rem 1rem;
+    font-weight: 700; font-size: .86rem; margin-top: .5rem; display: none;
+  }
+  .fee-box.show { display: block; }
+  .fee-box .fee-amt { font-weight: 900; color: var(--brown-light); }
+
+  /* ── STEP 4: MENU ── */
+  .cat-pills { position: sticky; top: 0; z-index: 20; background: var(--cream); display: flex; gap: .5rem; overflow-x: auto; padding: .6rem 0 .9rem; margin-bottom: .5rem; }
+  .cat-pill {
+    background: #fff; border: 2px solid #eee3c8; border-radius: 50px; padding: .5rem 1rem; font-weight: 800;
+    font-size: .78rem; white-space: nowrap; cursor: pointer; flex-shrink: 0;
+  }
+  .cat-pill.active { background: var(--brown); color: var(--yellow); border-color: var(--brown); }
+  .menu-section { margin-bottom: 1.5rem; scroll-margin-top: 60px; }
+  .menu-section h2 { font-size: 1.1rem; margin-bottom: .8rem; }
+  .item-card { background: #fff; border-radius: 14px; padding: 1rem; box-shadow: 0 4px 14px rgba(61,32,0,.06); margin-bottom: .8rem; }
+  .item-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .5rem; }
+  .item-name { font-weight: 900; font-size: .95rem; }
+  .item-price { font-weight: 800; font-size: .85rem; color: var(--brown-light); white-space: nowrap; }
+  .opt-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .7rem; }
+  .opt-chip { border: 2px solid #eee3c8; border-radius: 50px; padding: .4rem .9rem; font-weight: 800; font-size: .76rem; cursor: pointer; background: var(--cream); }
+  .opt-chip.selected { background: var(--yellow); border-color: var(--brown); color: var(--brown); }
+  .qty-note-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .7rem; flex-wrap: wrap; }
+  .qty-stepper { display: flex; align-items: center; gap: .5rem; background: var(--cream); border-radius: 50px; padding: .25rem .5rem; }
+  .qty-stepper button { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--brown); color: var(--yellow); font-weight: 900; font-size: 1rem; cursor: pointer; }
+  .qty-stepper .qty-val { font-weight: 900; min-width: 20px; text-align: center; }
+  .item-card input[type=text].note-input { flex: 1; min-width: 140px; padding: .5rem .7rem; font-size: .8rem; }
+  .btn-add { width: 100%; background: var(--brown); color: var(--yellow); border: none; border-radius: 10px; padding: .7rem; font-weight: 900; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; cursor: pointer; }
+  .btn-add:hover { background: var(--brown-light); }
+  .custom-mix-flavors { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .7rem; }
+
+  /* ── STEP 5: CART ── */
+  .cart-item { border-bottom: 1px solid #f0e8d0; padding: .9rem 0; }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-top { display: flex; justify-content: space-between; gap: .6rem; }
+  .cart-item-name { font-weight: 900; font-size: .92rem; }
+  .cart-item-meta { font-size: .74rem; font-weight: 700; opacity: .6; margin-top: .15rem; }
+  .cart-item-line { font-weight: 900; color: var(--brown-light); white-space: nowrap; }
+  .cart-item-actions { display: flex; align-items: center; justify-content: space-between; margin-top: .6rem; gap: .6rem; flex-wrap: wrap; }
+  .cart-remove { background: none; border: none; color: var(--red); font-weight: 800; font-size: .76rem; cursor: pointer; }
+  .cart-item input.note-input { margin-top: .5rem; width: 100%; padding: .45rem .6rem; font-size: .78rem; }
+  .empty-cart { text-align: center; font-weight: 700; opacity: .5; padding: 2rem 0; }
+
+  .summary-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .88rem; padding: .3rem 0; }
+  .summary-row.total { font-weight: 900; font-size: 1.05rem; border-top: 1px dashed #ddd; margin-top: .4rem; padding-top: .6rem; }
+
+  /* ── STEP 6: PAYMENT ── */
+  .pay-option { display: flex; align-items: center; gap: .7rem; border: 2px solid #eee3c8; border-radius: 12px; padding: .9rem 1rem; margin-bottom: .7rem; cursor: pointer; }
+  .pay-option.selected { border-color: var(--brown); background: var(--cream); }
+  .pay-option input { width: 18px; height: 18px; }
+  .pay-option .pay-label { font-weight: 900; font-size: .9rem; }
+  .qr-box { text-align: center; margin: 1rem 0; }
+  .qr-box img { max-width: 220px; width: 100%; border-radius: 12px; border: 3px solid var(--yellow); }
+  .note-box { background: var(--cream); border-radius: 10px; padding: .8rem 1rem; font-weight: 700; font-size: .8rem; margin: .8rem 0; line-height: 1.5; }
+
+  /* ── STEP 7: CONFIRMATION ── */
+  .confirm-head { text-align: center; padding: 1rem 0 1.5rem; }
+  .confirm-head .check { font-size: 3rem; margin-bottom: .5rem; }
+  .confirm-head h2 { font-size: 1.3rem; }
+  .confirm-head .order-num { font-size: 1.15rem; font-weight: 900; color: var(--brown-light); margin-top: .4rem; }
+  .msg-link { display: block; text-align: center; background: var(--brown); color: var(--yellow); text-decoration: none; font-weight: 900; padding: .9rem; border-radius: 12px; margin-top: 1rem; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #f0e8d0;
+    box-shadow: 0 -4px 16px rgba(61,32,0,.08); padding: .8rem 1.25rem; display: flex; align-items: center;
+    justify-content: space-between; gap: .8rem; z-index: 100;
+  }
+  .btn { font-weight: 900; font-size: .82rem; letter-spacing: .02em; text-transform: uppercase; border: none; border-radius: 10px; padding: .75rem 1.4rem; cursor: pointer; }
+  .btn-primary { background: var(--brown); color: var(--yellow); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-ghost { background: none; color: var(--brown-light); border: 2px solid #eee3c8; }
+  .bottom-info { font-weight: 800; font-size: .82rem; text-align: center; flex: 1; }
+  .bottom-info .bi-total { color: var(--brown-light); font-weight: 900; }
+
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(61,32,0,.55); display: none; align-items: center; justify-content: center;
+    z-index: 500; color: #fff; font-weight: 800; font-size: 1rem; text-align: center;
+  }
+  .loading-overlay.show { display: flex; }
+
+  @media (max-width: 480px) {
+    header.site-head img { height: 40px; }
+    .hero-block h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <a class="brand" href="index.html">
+    <img src="Logo.png" alt="Cup of Joy" />
+    <span class="brand-text">Cup of <span>Joy</span></span>
+  </a>
+  <a class="back-link" href="index.html">&larr; Back to site</a>
+</header>
+
+<div class="hero-block">
+  <h1>Order Online</h1>
+  <div class="hours-notice">We accept orders from 9:00 AM to 8:00 PM only</div>
+</div>
+
+<div id="closedScreen">
+  <div class="icon">☕</div>
+  <h2>Sorry Joymate!</h2>
+  <p>We are currently closed. Come back between 9AM and 8PM to place your order.</p>
+</div>
+
+<div id="orderApp">
+  <div class="progress-wrap">
+    <div class="progress-label" id="progressLabel">Step 1 of 7 — Order Type</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:14.28%"></div></div>
+  </div>
+
+  <main class="steps-container">
+
+    <!-- STEP 1: ORDER TYPE -->
+    <section class="step-panel active" data-step="1">
+      <div class="card">
+        <h2>How would you like your order?</h2>
+        <div class="order-type-grid">
+          <div class="order-type-btn" data-type="delivery">
+            <span class="emoji">🛵</span>
+            <span class="label">Delivery</span>
+            <span class="sub">We bring it to your barangay</span>
+          </div>
+          <div class="order-type-btn" data-type="pickup">
+            <span class="emoji">🏠</span>
+            <span class="label">Pickup</span>
+            <span class="sub">Grab it at Rosario Town Plaza</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: SCHEDULE -->
+    <section class="step-panel" data-step="2">
+      <div class="card">
+        <h2>Pick a date</h2>
+        <div class="field">
+          <label for="orderDate">Date</label>
+          <input type="date" id="orderDate" />
+        </div>
+      </div>
+      <div class="card">
+        <h2>Pick a time slot</h2>
+        <div class="hint">Every 30 minutes, 9:00 AM – 8:00 PM. Must be at least 30 minutes from now.</div>
+        <div class="slot-grid" id="slotGrid"></div>
+      </div>
+    </section>
+
+    <!-- STEP 3: CUSTOMER DETAILS -->
+    <section class="step-panel" data-step="3">
+      <div class="card">
+        <h2>Your details</h2>
+        <div class="field">
+          <label for="custName">Full Name</label>
+          <input type="text" id="custName" placeholder="Juan Dela Cruz" />
+          <div class="field-error" id="errName">Please enter your full name.</div>
+        </div>
+        <div class="field">
+          <label for="custMobile">Mobile Number</label>
+          <input type="tel" id="custMobile" placeholder="09XXXXXXXXX" maxlength="11" />
+          <div class="field-error" id="errMobile">Please enter a valid PH mobile number (09XXXXXXXXX).</div>
+        </div>
+      </div>
+      <div class="card" id="deliveryDetailsCard" style="display:none">
+        <h2>Delivery address</h2>
+        <div class="field">
+          <label for="custAddress">House Number and Street</label>
+          <input type="text" id="custAddress" placeholder="123 Rizal St." />
+          <div class="field-error" id="errAddress">Please enter your address.</div>
+        </div>
+        <div class="field">
+          <label for="custBarangay">Barangay</label>
+          <select id="custBarangay">
+            <option value="">Select barangay</option>
+          </select>
+          <div class="field-error" id="errBarangay">Please select your barangay.</div>
+        </div>
+        <div class="field">
+          <label for="custLandmark">Landmark (optional)</label>
+          <input type="text" id="custLandmark" placeholder="Near the chapel" />
+        </div>
+        <div class="fee-box" id="feeBox"></div>
+      </div>
+    </section>
+
+    <!-- STEP 4: MENU -->
+    <section class="step-panel" data-step="4">
+      <div class="cat-pills" id="catPills"></div>
+      <div id="menuSections"></div>
+    </section>
+
+    <!-- STEP 5: CART -->
+    <section class="step-panel" data-step="5">
+      <div class="card">
+        <h2>Your Cart</h2>
+        <div id="cartList"></div>
+      </div>
+      <div class="card">
+        <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">₱0.00</span></div>
+        <div class="summary-row" id="sumFeeRow" style="display:none"><span>Delivery Fee</span><span id="sumFee">₱0.00</span></div>
+        <div class="summary-row total"><span>Grand Total</span><span id="sumTotal">₱0.00</span></div>
+      </div>
+    </section>
+
+    <!-- STEP 6: PAYMENT -->
+    <section class="step-panel" data-step="6">
+      <div class="card">
+        <h2>Payment Method</h2>
+        <label class="pay-option" data-method="gcash">
+          <input type="radio" name="payMethod" value="gcash" />
+          <span class="pay-label">GCash</span>
+        </label>
+        <label class="pay-option" data-method="cod">
+          <input type="radio" name="payMethod" value="cod" />
+          <span class="pay-label">Cash on Delivery / Pickup</span>
+        </label>
+
+        <div id="gcashPanel" style="display:none">
+          <div class="qr-box"><img src="gcash-qr.png" alt="GCash QR Code" /></div>
+          <div class="note-box" id="gcashInstructions"></div>
+          <div class="field">
+            <label for="gcashRef">GCash Reference Number</label>
+            <input type="text" id="gcashRef" placeholder="e.g. 1234567890123" />
+            <div class="field-error" id="errGcashRef">Reference number is required for GCash payments.</div>
+          </div>
+          <div class="field">
+            <label for="gcashProof">Upload Payment Screenshot (optional but encouraged)</label>
+            <input type="file" id="gcashProof" accept="image/*" />
+          </div>
+          <div class="note-box">Your order will be prepared once payment is verified by our team.</div>
+        </div>
+
+        <div id="codPanel" style="display:none">
+          <div class="note-box" id="codInstructions"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7: CONFIRMATION -->
+    <section class="step-panel" data-step="7">
+      <div class="card confirm-head">
+        <div class="check">✅</div>
+        <h2>Order Placed!</h2>
+        <div class="order-num" id="confirmOrderNum"></div>
+      </div>
+      <div class="card">
+        <h3>Order Summary</h3>
+        <div id="confirmItems"></div>
+        <div class="summary-row"><span>Subtotal</span><span id="confirmSubtotal"></span></div>
+        <div class="summary-row" id="confirmFeeRow" style="display:none"><span>Delivery Fee</span><span id="confirmFee"></span></div>
+        <div class="summary-row total"><span>Grand Total</span><span id="confirmTotal"></span></div>
+      </div>
+      <div class="card">
+        <h3>Schedule</h3>
+        <div class="summary-row"><span>Type</span><span id="confirmType"></span></div>
+        <div class="summary-row"><span>When</span><span id="confirmWhen"></span></div>
+        <div class="summary-row" id="confirmAddrRow" style="display:none"><span>Address</span><span id="confirmAddr"></span></div>
+        <div class="summary-row"><span>Payment</span><span id="confirmPayment"></span></div>
+      </div>
+      <div class="card" id="confirmGcashNote" style="display:none">
+        <div class="note-box">Please send the exact amount and keep your reference number. Your order will be prepared once payment is verified.</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <p style="font-weight:800; margin-bottom: .5rem;">Thank you Joymate! We will prepare your order for your scheduled time.</p>
+        <p style="font-weight:700; opacity:.7; font-size:.85rem;">For questions message us on Facebook.</p>
+        <a class="msg-link" href="https://m.me/61579999162949" target="_blank" rel="noopener">💬 Message us on Facebook</a>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="bottom-bar" id="bottomBar">
+    <button class="btn btn-ghost" id="backBtn" type="button">Back</button>
+    <div class="bottom-info" id="bottomInfo"></div>
+    <button class="btn btn-primary" id="nextBtn" type="button">Next</button>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">Placing your order…</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
+
+const insforge = createClient({
+  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
+});
+
+/* ══════════════════ EMAILJS ══════════════════
+   Owner notification email is sent via EmailJS (cdnjs "emailjs-com" v3.2.0, loaded above).
+   Credentials below are already wired up for Cup of Joy's EmailJS account.
+   If you ever need to change them: sign in at https://emailjs.com → Email Services (Service ID),
+   Email Templates (Template ID), Account → General (Public Key).
+   IMPORTANT: the EmailJS template's "To Email" field must be set to {{to_email}} so BOTH
+   joyie7696@gmail.com and benedick.tiaga04@gmail.com receive the notification. */
+const EMAILJS_SERVICE_ID = 'service_cmw6ymw';
+const EMAILJS_TEMPLATE_ID = 'template_d8peb24';
+const EMAILJS_PUBLIC_KEY = '2FZtgmNY1B7IgVLUt';
+const NOTIFY_EMAILS = 'joyie7696@gmail.com,benedick.tiaga04@gmail.com';
+if (window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY);
+
+/* ══════════════════ CONSTANTS ══════════════════ */
+const SHOP_LAT = 16.230069995562978;
+const SHOP_LON = 120.48822516474148;
+const FB_MESSENGER = 'https://m.me/61579999162949';
+
+const BARANGAYS = [
+  { name: 'Alipang', lat: 16.2180, lon: 120.4850 },
+  { name: 'Ambangonan', lat: 16.2350, lon: 120.4920 },
+  { name: 'Amlang', lat: 16.2290, lon: 120.4880 },
+  { name: 'Bacani', lat: 16.2150, lon: 120.4830 },
+  { name: 'Bangar', lat: 16.2400, lon: 120.4950 },
+  { name: 'Bani', lat: 16.2320, lon: 120.4900 },
+  { name: 'Benteng Sapilang', lat: 16.2260, lon: 120.4870 },
+  { name: 'Cadumanian', lat: 16.2210, lon: 120.4860 },
+  { name: 'Camp One', lat: 16.2380, lon: 120.4940 },
+  { name: 'Carunuan East', lat: 16.2270, lon: 120.4875 },
+  { name: 'Carunuan West', lat: 16.2265, lon: 120.4865 },
+  { name: 'Casilagan', lat: 16.2300, lon: 120.4890 },
+  { name: 'Cataguingtingan', lat: 16.2240, lon: 120.4865 },
+  { name: 'Concepcion', lat: 16.2330, lon: 120.4910 },
+  { name: 'Damortis', lat: 16.2190, lon: 120.4845 },
+  { name: 'Gumot Nagcolaran', lat: 16.2360, lon: 120.4930 },
+  { name: 'Inabaan Norte', lat: 16.2310, lon: 120.4895 },
+  { name: 'Inabaan Sur', lat: 16.2305, lon: 120.4885 },
+  { name: 'Marcos', lat: 16.2220, lon: 120.4855 },
+  { name: 'Nagtagaan', lat: 16.2370, lon: 120.4935 },
+  { name: 'Nangcamotian', lat: 16.2280, lon: 120.4880 },
+  { name: 'Parasapas', lat: 16.2250, lon: 120.4870 },
+  { name: 'Poblacion East', lat: 16.2301, lon: 120.4883 },
+  { name: 'Poblacion West', lat: 16.2298, lon: 120.4878 },
+  { name: 'Puzon', lat: 16.2340, lon: 120.4915 },
+  { name: 'Rabon', lat: 16.2230, lon: 120.4860 },
+  { name: 'San Jose', lat: 16.2315, lon: 120.4898 },
+  { name: 'Subusub', lat: 16.2200, lon: 120.4850 },
+  { name: 'Tabtabungao', lat: 16.2355, lon: 120.4925 },
+  { name: 'Tanglag', lat: 16.2345, lon: 120.4918 },
+  { name: 'Tay-ac', lat: 16.2285, lon: 120.4882 },
+  { name: 'Udiao', lat: 16.2301, lon: 120.4882 },
+  { name: 'Vila', lat: 16.2160, lon: 120.4835 }
+];
+
+/* ══════════════════ MENU DATA (limited online menu) ══════════════════ */
+function ozItem(name, p16, p22) {
+  return { name, options: [{ label: '16oz', price: p16 }, { label: '22oz', price: p22 }] };
+}
+function flatItem(name, price) {
+  return { name, options: [{ label: 'Standard', price }] };
+}
+
+const COFFEE = [
+  ozItem('Americano', 90, 125), ozItem('Latte', 95, 130), ozItem('Cappuccino', 95, 130),
+  ozItem('Caramel Macchiato', 100, 135), ozItem('White Mocha Latte', 100, 135), ozItem('Mocha Latte', 100, 135),
+  ozItem('Spanish Latte', 100, 135), ozItem('Hazelnut Latte', 100, 135), ozItem('Sea Salt Latte', 110, 145),
+  ozItem('Dirty Matcha Latte', 130, 165), ozItem('Biscoff Latte', 145, 180), ozItem('Dirty Matcha Biscoff', 155, 190),
+  flatItem('Dirty Horchata', 160)
+];
+
+const MILK_BASED = [
+  ozItem('Milky Strawberry', 100, 135), ozItem('Milky Blueberry', 100, 135), ozItem('Milky Mango', 100, 135),
+  ozItem('Milky Green Apple', 100, 135), ozItem('Matcha Latte', 110, 145), ozItem('Sea Salt Matcha', 120, 155),
+  ozItem('Mango Matcha', 130, 165), ozItem('Strawberry Matcha', 130, 165), ozItem('Blueberry Matcha', 130, 165),
+  ozItem('Biscoff Matcha', 145, 180), ozItem('Choco Oreo', 120, 155), flatItem('Horchata', 150)
+];
+
+const FRUIT_FLAVORS = ['Peach Mango', 'Peach', 'Mango', 'Lychee', 'Grapes', 'Green Apple', 'Strawberry', 'Blueberry', 'Lemon'];
+const FRUIT_SODA = FRUIT_FLAVORS.map(f => ({ name: f, options: [{ label: 'Regular', price: 50 }, { label: 'Yogurt', price: 60 }] }));
+const CUSTOM_MIX_PRICE = 60;
+
+const BREADS_AND_PASTRIES = [
+  flatItem('Cheese Bread', 70), flatItem('Ensaymada Classic 65g', 25), flatItem('Pandexal Cheese 10pcs', 45),
+  flatItem('Toast Chiffon', 35), flatItem('Ensaymada Double Ube', 30), flatItem('Loaf Bread Jumbo 500g', 65),
+  flatItem('Loaf Bread Sakto 350g', 50), flatItem('Classic Mamon', 25), flatItem('Macaroons Chewy Macaroonies 8pcs', 40)
+];
+
+const CAKES = [flatItem('Yema Cake', 120), flatItem('Ube Cake', 125)];
+
+const CATEGORIES = [
+  { name: 'Coffee', items: COFFEE },
+  { name: 'Milk Based', items: MILK_BASED },
+  { name: 'Fruit Soda', items: FRUIT_SODA, customMix: true },
+  { name: 'Breads and Pastries', items: BREADS_AND_PASTRIES },
+  { name: 'Cakes', items: CAKES }
+];
+
+const money = n => `₱${(Number(n) || 0).toFixed(2)}`;
+
+/* ══════════════════ HAVERSINE + DELIVERY FEE ══════════════════ */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function roundUpTo1Decimal(n) { return Math.ceil(n * 10) / 10; }
+function deliveryFeeFor(distanceKm) {
+  if (distanceKm <= 2) return 0;
+  if (distanceKm <= 5) return 50;
+  return 50 + Math.ceil(distanceKm - 5) * 20;
+}
+
+/* ══════════════════ HOURS GATE ══════════════════ */
+function isWithinOrderingHours() {
+  const now = new Date();
+  const open = new Date(now); open.setHours(9, 0, 0, 0);
+  const close = new Date(now); close.setHours(20, 0, 0, 0);
+  return now >= open && now <= close;
+}
+if (!isWithinOrderingHours()) {
+  document.getElementById('orderApp').style.display = 'none';
+  document.getElementById('closedScreen').style.display = 'flex';
+}
+
+/* ══════════════════ STATE ══════════════════ */
+const state = {
+  step: 1,
+  orderType: null,
+  date: null,
+  time: null,
+  name: '', mobile: '', address: '', barangay: '', landmark: '',
+  distanceKm: null, deliveryFee: 0,
+  cart: [],
+  customMixSelection: [],
+  paymentMethod: null, gcashRef: '', gcashProofFile: null
+};
+
+const STEP_LABELS = ['Order Type', 'Schedule', 'Your Details', 'Menu', 'Cart', 'Payment', 'Confirmation'];
+
+/* ══════════════════ STEP 1 ══════════════════ */
+document.querySelectorAll('.order-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.orderType = btn.dataset.type;
+    document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('deliveryDetailsCard').style.display = state.orderType === 'delivery' ? 'block' : 'none';
+    goToStep(2);
+  });
+});
+
+/* ══════════════════ STEP 2: SCHEDULE ══════════════════ */
+const dateInput = document.getElementById('orderDate');
+const todayStr = ymd(new Date());
+const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 7);
+dateInput.min = todayStr;
+dateInput.max = ymd(maxDate);
+dateInput.value = todayStr;
+state.date = todayStr;
+
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function buildTimeSlots() {
+  const slots = [];
+  for (let h = 9; h <= 20; h++) {
+    for (const m of [0, 30]) {
+      if (h === 20 && m === 30) continue;
+      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+  return slots;
+}
+const ALL_SLOTS = buildTimeSlots();
+
+function renderSlots() {
+  const grid = document.getElementById('slotGrid');
+  grid.innerHTML = '';
+  const now = new Date();
+  const minAllowed = new Date(now.getTime() + 30 * 60000);
+  ALL_SLOTS.forEach(slot => {
+    const [h, m] = slot.split(':').map(Number);
+    const slotDate = new Date(state.date + 'T00:00:00');
+    slotDate.setHours(h, m, 0, 0);
+    const disabled = slotDate < minAllowed;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'slot-btn' + (state.time === slot ? ' selected' : '');
+    btn.textContent = to12h(slot);
+    btn.disabled = disabled;
+    if (!disabled) {
+      btn.addEventListener('click', () => {
+        state.time = slot;
+        renderSlots();
+        updateBottomBar();
+      });
+    }
+    grid.appendChild(btn);
+  });
+}
+function to12h(slot) {
+  const [h, m] = slot.split(':').map(Number);
+  const period = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+dateInput.addEventListener('change', () => {
+  state.date = dateInput.value || todayStr;
+  state.time = null;
+  renderSlots();
+  updateBottomBar();
+});
+renderSlots();
+
+/* ══════════════════ STEP 3: CUSTOMER DETAILS ══════════════════ */
+const barangaySelect = document.getElementById('custBarangay');
+BARANGAYS.forEach(b => {
+  const opt = document.createElement('option');
+  opt.value = b.name; opt.textContent = b.name;
+  barangaySelect.appendChild(opt);
+});
+
+document.getElementById('custName').addEventListener('input', e => { state.name = e.target.value; updateBottomBar(); });
+document.getElementById('custMobile').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 11);
+  state.mobile = e.target.value; updateBottomBar();
+});
+document.getElementById('custAddress').addEventListener('input', e => { state.address = e.target.value; updateBottomBar(); });
+document.getElementById('custLandmark').addEventListener('input', e => { state.landmark = e.target.value; });
+barangaySelect.addEventListener('change', () => {
+  state.barangay = barangaySelect.value;
+  const b = BARANGAYS.find(x => x.name === state.barangay);
+  const feeBox = document.getElementById('feeBox');
+  if (!b) { feeBox.classList.remove('show'); state.distanceKm = null; state.deliveryFee = 0; updateBottomBar(); return; }
+  const distRaw = haversineKm(SHOP_LAT, SHOP_LON, b.lat, b.lon);
+  const dist = roundUpTo1Decimal(distRaw);
+  const fee = deliveryFeeFor(dist);
+  state.distanceKm = dist; state.deliveryFee = fee;
+  feeBox.classList.add('show');
+  feeBox.innerHTML = fee === 0
+    ? `Your barangay is approximately ${dist}km from our shop. <span class="fee-amt">Free delivery!</span>`
+    : `Your barangay is approximately ${dist}km from our shop. Delivery fee: <span class="fee-amt">${money(fee)}</span>`;
+  updateBottomBar();
+});
+
+/* ══════════════════ STEP 4: MENU ══════════════════ */
+const catPills = document.getElementById('catPills');
+const menuSections = document.getElementById('menuSections');
+const itemUiState = {}; // per-item selected option index
+
+CATEGORIES.forEach((cat, ci) => {
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.className = 'cat-pill' + (ci === 0 ? ' active' : '');
+  pill.textContent = cat.name;
+  pill.addEventListener('click', () => {
+    document.getElementById('cat-section-' + ci).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  catPills.appendChild(pill);
+
+  const section = document.createElement('div');
+  section.className = 'menu-section';
+  section.id = 'cat-section-' + ci;
+  section.innerHTML = `<h2>${cat.name}</h2>`;
+
+  cat.items.forEach((item, ii) => {
+    const key = `${ci}-${ii}`;
+    itemUiState[key] = { optIdx: 0, qty: 1, note: '' };
+    section.appendChild(buildItemCard(cat, item, key));
+  });
+
+  if (cat.customMix) section.appendChild(buildCustomMixCard(cat));
+
+  menuSections.appendChild(section);
+});
+
+function buildItemCard(cat, item, key) {
+  const card = document.createElement('div');
+  card.className = 'item-card';
+  const st = itemUiState[key];
+  const hasOptions = item.options.length > 1;
+
+  const priceLabel = () => money(item.options[st.optIdx].price);
+
+  card.innerHTML = `
+    <div class="item-head"><span class="item-name">${item.name}</span><span class="item-price" data-price>${priceLabel()}</span></div>
+    ${hasOptions ? `<div class="opt-row" data-opts></div>` : ''}
+    <div class="qty-note-row">
+      <div class="qty-stepper">
+        <button type="button" data-minus>−</button>
+        <span class="qty-val" data-qty>1</span>
+        <button type="button" data-plus>+</button>
+      </div>
+      <input type="text" class="note-input" placeholder="Note (optional)" data-note />
+    </div>
+    <button type="button" class="btn-add" data-add>Add to Cart</button>
+  `;
+
+  if (hasOptions) {
+    const optRow = card.querySelector('[data-opts]');
+    item.options.forEach((opt, oi) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'opt-chip' + (oi === 0 ? ' selected' : '');
+      chip.textContent = `${opt.label} · ${money(opt.price)}`;
+      chip.addEventListener('click', () => {
+        st.optIdx = oi;
+        optRow.querySelectorAll('.opt-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        card.querySelector('[data-price]').textContent = priceLabel();
+      });
+      optRow.appendChild(chip);
+    });
+  }
+
+  card.querySelector('[data-minus]').addEventListener('click', () => {
+    st.qty = Math.max(1, st.qty - 1);
+    card.querySelector('[data-qty]').textContent = st.qty;
+  });
+  card.querySelector('[data-plus]').addEventListener('click', () => {
+    st.qty = st.qty + 1;
+    card.querySelector('[data-qty]').textContent = st.qty;
+  });
+  card.querySelector('[data-note]').addEventListener('input', e => { st.note = e.target.value; });
+
+  card.querySelector('[data-add]').addEventListener('click', () => {
+    const opt = item.options[st.optIdx];
+    const isSized = cat.name === 'Coffee' || cat.name === 'Milk Based';
+    const isSoda = cat.name === 'Fruit Soda';
+    addToCart({
+      name: item.name,
+      category: cat.name,
+      size: isSized && opt.label !== 'Standard' ? opt.label : null,
+      variant: isSoda && opt.label !== 'Standard' ? opt.label : null,
+      unitPrice: opt.price,
+      quantity: st.qty,
+      notes: st.note || null
+    });
+    st.qty = 1; st.note = '';
+    card.querySelector('[data-qty]').textContent = '1';
+    card.querySelector('[data-note]').value = '';
+    flashAdded(card);
+  });
+
+  return card;
+}
+
+function buildCustomMixCard(cat) {
+  const card = document.createElement('div');
+  card.className = 'item-card';
+  card.innerHTML = `
+    <div class="item-head"><span class="item-name">Custom Mix — Pick 2 Flavors</span><span class="item-price">${money(CUSTOM_MIX_PRICE)}</span></div>
+    <div class="custom-mix-flavors" data-flavors></div>
+    <div class="qty-note-row">
+      <div class="qty-stepper">
+        <button type="button" data-minus>−</button>
+        <span class="qty-val" data-qty>1</span>
+        <button type="button" data-plus>+</button>
+      </div>
+      <input type="text" class="note-input" placeholder="Note (optional)" data-note />
+    </div>
+    <button type="button" class="btn-add" data-add disabled>Select 2 flavors first</button>
+  `;
+  const st = { flavors: [], qty: 1, note: '' };
+  const flavorRow = card.querySelector('[data-flavors]');
+  FRUIT_FLAVORS.forEach(f => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'opt-chip';
+    chip.textContent = f;
+    chip.addEventListener('click', () => {
+      const idx = st.flavors.indexOf(f);
+      if (idx >= 0) {
+        st.flavors.splice(idx, 1);
+        chip.classList.remove('selected');
+      } else if (st.flavors.length < 2) {
+        st.flavors.push(f);
+        chip.classList.add('selected');
+      }
+      const addBtn = card.querySelector('[data-add]');
+      addBtn.disabled = st.flavors.length !== 2;
+      addBtn.textContent = st.flavors.length === 2 ? 'Add to Cart' : 'Select 2 flavors first';
+    });
+    flavorRow.appendChild(chip);
+  });
+  card.querySelector('[data-minus]').addEventListener('click', () => {
+    st.qty = Math.max(1, st.qty - 1);
+    card.querySelector('[data-qty]').textContent = st.qty;
+  });
+  card.querySelector('[data-plus]').addEventListener('click', () => {
+    st.qty = st.qty + 1;
+    card.querySelector('[data-qty]').textContent = st.qty;
+  });
+  card.querySelector('[data-note]').addEventListener('input', e => { st.note = e.target.value; });
+  card.querySelector('[data-add]').addEventListener('click', () => {
+    if (st.flavors.length !== 2) return;
+    addToCart({
+      name: `Custom Mix: ${st.flavors[0]} + ${st.flavors[1]}`,
+      category: 'Fruit Soda',
+      size: null, variant: null,
+      unitPrice: CUSTOM_MIX_PRICE,
+      quantity: st.qty,
+      notes: st.note || null
+    });
+    st.qty = 1; st.note = '';
+    card.querySelector('[data-qty]').textContent = '1';
+    card.querySelector('[data-note]').value = '';
+    flashAdded(card);
+  });
+  return card;
+}
+
+function flashAdded(card) {
+  const btn = card.querySelector('[data-add]');
+  const original = btn.textContent;
+  btn.textContent = 'Added! ✓';
+  setTimeout(() => { if (!btn.disabled) btn.textContent = original; }, 900);
+}
+
+function addToCart(entry) {
+  entry.lineTotal = entry.unitPrice * entry.quantity;
+  state.cart.push(entry);
+  renderCart();
+  updateBottomBar();
+}
+
+/* ══════════════════ STEP 5: CART ══════════════════ */
+function renderCart() {
+  const list = document.getElementById('cartList');
+  if (!state.cart.length) {
+    list.innerHTML = '<div class="empty-cart">Your cart is empty. Add something tasty!</div>';
+  } else {
+    list.innerHTML = '';
+    state.cart.forEach((c, idx) => {
+      const meta = [c.size, c.variant].filter(Boolean).join(' · ');
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-top">
+          <div>
+            <div class="cart-item-name">${c.name}</div>
+            ${meta ? `<div class="cart-item-meta">${meta}</div>` : ''}
+          </div>
+          <div class="cart-item-line">${money(c.lineTotal)}</div>
+        </div>
+        <div class="cart-item-actions">
+          <div class="qty-stepper">
+            <button type="button" data-minus>−</button>
+            <span class="qty-val">${c.quantity}</span>
+            <button type="button" data-plus>+</button>
+          </div>
+          <button type="button" class="cart-remove" data-remove>Remove</button>
+        </div>
+        <input type="text" class="note-input" placeholder="Note (optional)" value="${c.notes ? escapeHtml(c.notes) : ''}" data-note />
+      `;
+      row.querySelector('[data-minus]').addEventListener('click', () => {
+        c.quantity = Math.max(1, c.quantity - 1);
+        c.lineTotal = c.unitPrice * c.quantity;
+        renderCart(); updateBottomBar();
+      });
+      row.querySelector('[data-plus]').addEventListener('click', () => {
+        c.quantity += 1;
+        c.lineTotal = c.unitPrice * c.quantity;
+        renderCart(); updateBottomBar();
+      });
+      row.querySelector('[data-remove]').addEventListener('click', () => {
+        state.cart.splice(idx, 1);
+        renderCart(); updateBottomBar();
+      });
+      row.querySelector('[data-note]').addEventListener('input', e => { c.notes = e.target.value || null; });
+      list.appendChild(row);
+    });
+  }
+  const subtotal = state.cart.reduce((s, c) => s + c.lineTotal, 0);
+  document.getElementById('sumSubtotal').textContent = money(subtotal);
+  const feeRow = document.getElementById('sumFeeRow');
+  if (state.orderType === 'delivery') {
+    feeRow.style.display = 'flex';
+    document.getElementById('sumFee').textContent = money(state.deliveryFee);
+  } else {
+    feeRow.style.display = 'none';
+  }
+  const grandTotal = subtotal + (state.orderType === 'delivery' ? state.deliveryFee : 0);
+  document.getElementById('sumTotal').textContent = money(grandTotal);
+}
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function cartSubtotal() { return state.cart.reduce((s, c) => s + c.lineTotal, 0); }
+function grandTotal() { return cartSubtotal() + (state.orderType === 'delivery' ? state.deliveryFee : 0); }
+
+/* ══════════════════ STEP 6: PAYMENT ══════════════════ */
+document.querySelectorAll('.pay-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    state.paymentMethod = opt.dataset.method;
+    document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    opt.querySelector('input').checked = true;
+    document.getElementById('gcashPanel').style.display = state.paymentMethod === 'gcash' ? 'block' : 'none';
+    document.getElementById('codPanel').style.display = state.paymentMethod === 'cod' ? 'block' : 'none';
+    const total = grandTotal();
+    document.getElementById('gcashInstructions').textContent =
+      `Scan the QR code using your GCash app. Send the exact amount of ${money(total)}. Take a screenshot of your payment confirmation.`;
+    document.getElementById('codInstructions').textContent =
+      `Please prepare the exact amount of ${money(total)} upon delivery or pickup.`;
+    updateBottomBar();
+  });
+});
+document.getElementById('gcashRef').addEventListener('input', e => { state.gcashRef = e.target.value; updateBottomBar(); });
+document.getElementById('gcashProof').addEventListener('change', e => { state.gcashProofFile = e.target.files[0] || null; });
+
+/* ══════════════════ STEP NAVIGATION ══════════════════ */
+function showFieldError(id, show) { document.getElementById(id).classList.toggle('show', show); }
+
+function validateStep(step) {
+  if (step === 1) return !!state.orderType;
+  if (step === 2) return !!(state.date && state.time);
+  if (step === 3) {
+    const nameOk = state.name.trim().length > 0;
+    const mobileOk = /^09\d{9}$/.test(state.mobile);
+    showFieldError('errName', !nameOk);
+    showFieldError('errMobile', !mobileOk);
+    if (state.orderType === 'delivery') {
+      const addrOk = state.address.trim().length > 0;
+      const brgyOk = !!state.barangay;
+      showFieldError('errAddress', !addrOk);
+      showFieldError('errBarangay', !brgyOk);
+      return nameOk && mobileOk && addrOk && brgyOk;
+    }
+    return nameOk && mobileOk;
+  }
+  if (step === 4) return state.cart.length > 0;
+  if (step === 5) return state.cart.length > 0;
+  if (step === 6) {
+    if (!state.paymentMethod) return false;
+    if (state.paymentMethod === 'gcash') {
+      const refOk = state.gcashRef.trim().length > 0;
+      showFieldError('errGcashRef', !refOk);
+      return refOk;
+    }
+    return true;
+  }
+  return true;
+}
+
+function goToStep(n) {
+  if (n < 1 || n > 7) return;
+  state.step = n;
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === n));
+  document.getElementById('progressLabel').textContent = `Step ${n} of 7 — ${STEP_LABELS[n - 1]}`;
+  document.getElementById('progressFill').style.width = `${(n / 7) * 100}%`;
+  document.getElementById('backBtn').style.visibility = n === 1 ? 'hidden' : 'visible';
+  document.getElementById('bottomBar').style.display = n === 7 ? 'none' : 'flex';
+  if (n === 5) renderCart();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateBottomBar();
+}
+
+function updateBottomBar() {
+  const n = state.step;
+  const nextBtn = document.getElementById('nextBtn');
+  const info = document.getElementById('bottomInfo');
+  nextBtn.disabled = !validateStep(n);
+  if (n === 4 || n === 5) {
+    info.innerHTML = `${state.cart.length} item${state.cart.length === 1 ? '' : 's'} · <span class="bi-total">${money(grandTotal())}</span>`;
+  } else if (n === 6) {
+    info.innerHTML = `<span class="bi-total">${money(grandTotal())}</span>`;
+  } else {
+    info.textContent = '';
+  }
+  nextBtn.textContent = n === 6 ? 'Place Order' : (n === 1 ? 'Next' : 'Next');
+}
+
+document.getElementById('backBtn').addEventListener('click', () => goToStep(state.step - 1));
+document.getElementById('nextBtn').addEventListener('click', async () => {
+  if (!validateStep(state.step)) return;
+  if (state.step === 6) {
+    await submitOrder();
+    return;
+  }
+  goToStep(state.step + 1);
+});
+
+updateBottomBar();
+
+/* ══════════════════ SUBMIT ORDER ══════════════════ */
+async function submitOrder() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+  document.getElementById('nextBtn').disabled = true;
+
+  try {
+    const subtotal = cartSubtotal();
+    const total = grandTotal();
+
+    const { data: orderNumData, error: numErr } = await insforge.database.rpc('next_online_order_number');
+    if (numErr) throw numErr;
+    const orderNumber = Array.isArray(orderNumData) ? orderNumData[0] : orderNumData;
+
+    let screenshotUrl = null;
+    if (state.paymentMethod === 'gcash' && state.gcashProofFile) {
+      const { data: uploadData, error: uploadErr } = await insforge.storage
+        .from('online-order-payments')
+        .uploadAuto(state.gcashProofFile);
+      if (uploadErr) throw uploadErr;
+      screenshotUrl = uploadData.url;
+    }
+
+    const { data: orderRows, error: insertErr } = await insforge.database
+      .from('online_orders')
+      .insert([{
+        order_number: orderNumber,
+        customer_name: state.name.trim(),
+        mobile_number: state.mobile,
+        order_type: state.orderType,
+        scheduled_date: state.date,
+        scheduled_time: state.time,
+        delivery_address: state.orderType === 'delivery' ? state.address.trim() : null,
+        barangay: state.orderType === 'delivery' ? state.barangay : null,
+        landmark: state.orderType === 'delivery' ? (state.landmark.trim() || null) : null,
+        distance_km: state.orderType === 'delivery' ? state.distanceKm : null,
+        delivery_fee: state.orderType === 'delivery' ? state.deliveryFee : 0,
+        subtotal, grand_total: total,
+        payment_method: state.paymentMethod,
+        gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef.trim() : null,
+        gcash_screenshot_url: screenshotUrl,
+        status: 'Pending'
+      }])
+      .select();
+    if (insertErr) throw insertErr;
+    const orderId = orderRows[0].id;
+
+    const itemRows = state.cart.map(c => ({
+      online_order_id: orderId,
+      item_name: c.name, category: c.category, size: c.size, variant: c.variant,
+      notes: c.notes, unit_price: c.unitPrice, quantity: c.quantity, line_total: c.lineTotal
+    }));
+    const { error: itemsErr } = await insforge.database.from('online_order_items').insert(itemRows);
+    if (itemsErr) throw itemsErr;
+
+    sendOwnerEmail(orderNumber, subtotal, total);
+    sendTelegramNotification(orderNumber, subtotal, total);
+    renderConfirmation(orderNumber, subtotal, total);
+    goToStep(7);
+  } catch (err) {
+    console.error(err);
+    alert('Sorry, something went wrong placing your order. Please try again or message us on Facebook.');
+  } finally {
+    overlay.classList.remove('show');
+    document.getElementById('nextBtn').disabled = false;
+  }
+}
+
+function sendOwnerEmail(orderNumber, subtotal, total) {
+  if (!window.emailjs) return;
+  const itemsText = state.cart.map(c => {
+    const meta = [c.size, c.variant].filter(Boolean).join(' ');
+    return `- ${c.name}${meta ? ' (' + meta + ')' : ''} x${c.quantity} = ${money(c.lineTotal)}${c.notes ? ' [Note: ' + c.notes + ']' : ''}`;
+  }).join('\n');
+
+  /* Field names below must match the merge tags in the EmailJS template (template_d8peb24) exactly. */
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_email: NOTIFY_EMAILS,
+    order_number: orderNumber,
+    customer_name: state.name,
+    mobile_number: state.mobile,
+    order_type: state.orderType === 'delivery' ? 'Delivery' : 'Pickup',
+    scheduled_time: `${state.date} at ${to12h(state.time)}`,
+    delivery_address: state.orderType === 'delivery' ? state.address : '—',
+    barangay: state.orderType === 'delivery' ? state.barangay : '—',
+    landmark: state.orderType === 'delivery' ? (state.landmark || '—') : '—',
+    distance_km: state.orderType === 'delivery' ? state.distanceKm : '—',
+    delivery_fee: (state.orderType === 'delivery' ? state.deliveryFee : 0).toFixed(2),
+    items: itemsText,
+    subtotal: subtotal.toFixed(2),
+    grand_total: total.toFixed(2),
+    payment_method: state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup',
+    gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef : '—'
+  }).catch(err => console.error('EmailJS send failed:', err));
+}
+
+function sendTelegramNotification(orderNumber, subtotal, total) {
+  const itemsText = state.cart.map(c => {
+    const meta = [c.size, c.variant].filter(Boolean).join(' ');
+    return `- ${c.name}${meta ? ' (' + meta + ')' : ''} x${c.quantity} = ${money(c.lineTotal)}${c.notes ? ' [Note: ' + c.notes + ']' : ''}`;
+  }).join('\n');
+
+  insforge.functions.invoke('notify-telegram', {
+    body: {
+      order_number: orderNumber,
+      customer_name: state.name,
+      mobile_number: state.mobile,
+      order_type: state.orderType === 'delivery' ? 'Delivery' : 'Pickup',
+      scheduled_time: `${state.date} at ${to12h(state.time)}`,
+      barangay: state.orderType === 'delivery' ? state.barangay : '—',
+      items: itemsText,
+      subtotal,
+      delivery_fee: state.orderType === 'delivery' ? state.deliveryFee : 0,
+      grand_total: total,
+      payment_method: state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup',
+      gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef : '—'
+    }
+  }).catch(err => console.error('Telegram notify failed:', err));
+}
+
+function renderConfirmation(orderNumber, subtotal, total) {
+  document.getElementById('confirmOrderNum').textContent = orderNumber;
+  const itemsEl = document.getElementById('confirmItems');
+  itemsEl.innerHTML = state.cart.map(c => {
+    const meta = [c.size, c.variant].filter(Boolean).join(' · ');
+    return `<div class="summary-row"><span>${c.name}${meta ? ' (' + meta + ')' : ''} ×${c.quantity}</span><span>${money(c.lineTotal)}</span></div>`;
+  }).join('');
+  document.getElementById('confirmSubtotal').textContent = money(subtotal);
+  const feeRow = document.getElementById('confirmFeeRow');
+  if (state.orderType === 'delivery') {
+    feeRow.style.display = 'flex';
+    document.getElementById('confirmFee').textContent = money(state.deliveryFee);
+  }
+  document.getElementById('confirmTotal').textContent = money(total);
+  document.getElementById('confirmType').textContent = state.orderType === 'delivery' ? 'Delivery' : 'Pickup';
+  document.getElementById('confirmWhen').textContent = `${state.date} at ${to12h(state.time)}`;
+  if (state.orderType === 'delivery') {
+    document.getElementById('confirmAddrRow').style.display = 'flex';
+    document.getElementById('confirmAddr').textContent = `${state.address}, ${state.barangay}${state.landmark ? ' (' + state.landmark + ')' : ''}`;
+  }
+  document.getElementById('confirmPayment').textContent = state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup';
+  document.getElementById('confirmGcashNote').style.display = state.paymentMethod === 'gcash' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

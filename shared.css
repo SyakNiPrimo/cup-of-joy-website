@@ -120,6 +120,25 @@ nav.scrolled .btn-order {
 
 .btn-order:hover { transform: translateY(-1px); opacity: .9; }
 
+/* Order Online button — always solid so it stands out from the outline Order Now button */
+.btn-order-online {
+  background: var(--brown) !important;
+  border: 1.5px solid var(--brown) !important;
+  color: var(--yellow) !important;
+  text-decoration: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .6rem 1.4rem;
+  border-radius: 6px;
+  transition: background .2s, transform .15s;
+  white-space: nowrap;
+}
+
+.btn-order-online:hover { background: var(--brown-light) !important; transform: translateY(-1px); }
+
 /* Hamburger */
 .hamburger {
   display: none;
@@ -178,6 +197,14 @@ nav.scrolled .hamburger span { background: var(--brown); }
   border-color: var(--brown) !important;
   color: var(--yellow) !important;
   margin-top: .25rem;
+  border-bottom: none !important;
+  display: block;
+  padding: .65rem 1.25rem !important;
+}
+
+.mobile-menu .btn-order-online {
+  text-align: center;
+  margin-top: .6rem;
   border-bottom: none !important;
   display: block;
   padding: .65rem 1.25rem !important;
@@ -261,6 +288,6 @@ footer small { font-size: .8rem; opacity: .5; }
   :root { --nav-h: 70px; }
   .nav-logo img { height: 54px; }
   .nav-links-wrap { display: none; }
-  .nav-actions .btn-order { display: none; }
+  .nav-actions .btn-order, .nav-actions .btn-order-online { display: none; }
   .hamburger { display: flex; }
 }

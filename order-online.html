@@ -78,6 +78,7 @@
   .order-type-btn .sub { font-weight: 700; font-size: .74rem; opacity: .55; margin-top: .25rem; }
   .order-type-btn:hover { transform: translateY(-2px); border-color: var(--yellow); }
   .order-type-btn.selected { border-color: var(--brown); background: var(--yellow); }
+  .order-type-btn.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
   @media (max-width: 480px) { .order-type-grid { grid-template-columns: 1fr; } }
 
   /* ── FORMS ── */
@@ -202,13 +203,13 @@
 
 <div class="hero-block">
   <h1>Order Online</h1>
-  <div class="hours-notice">We accept orders from 9:00 AM to 8:00 PM only</div>
+  <div class="hours-notice" id="hoursNotice">Mon–Fri: 9:00 AM–8:00 PM · Sat: 1:00 PM–9:00 PM · Closed Sundays</div>
 </div>
 
 <div id="closedScreen">
   <div class="icon">☕</div>
   <h2>Sorry Joymate!</h2>
-  <p>We are currently closed. Come back between 9AM and 8PM to place your order.</p>
+  <p id="closedMessage">We are currently closed. Come back during our operating hours to place your order.</p>
 </div>
 
 <div id="orderApp">
@@ -224,7 +225,7 @@
       <div class="card">
         <h2>How would you like your order?</h2>
         <div class="order-type-grid">
-          <div class="order-type-btn" data-type="delivery">
+          <div class="order-type-btn" data-type="delivery" id="deliveryTypeBtn">
             <span class="emoji">🛵</span>
             <span class="label">Delivery</span>
             <span class="sub">We bring it to your barangay</span>
@@ -235,6 +236,7 @@
             <span class="sub">Grab it at Rosario Town Plaza</span>
           </div>
         </div>
+        <div class="hint" id="deliveryUnavailableNote" style="display:none; margin-top:.7rem;"></div>
       </div>
     </section>
 
@@ -515,16 +517,43 @@ function deliveryFeeFor(distanceKm) {
   return 50 + Math.ceil(distanceKm - 5) * 20;
 }
 
+/* ══════════════════ BUSINESS HOURS ══════════════════
+   Keyed by JS Date.getDay(): 0=Sunday .. 6=Saturday. null = closed all day. */
+const BUSINESS_HOURS = {
+  0: null,               // Sunday — closed
+  1: { open: 9, close: 20 },
+  2: { open: 9, close: 20 },
+  3: { open: 9, close: 20 },
+  4: { open: 9, close: 20 },
+  5: { open: 9, close: 20 },
+  6: { open: 13, close: 21 }  // Saturday — 1PM to 9PM
+};
+function hoursLabel(h) {
+  const period = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:00 ${period}`;
+}
+
 /* ══════════════════ HOURS GATE ══════════════════ */
 function isWithinOrderingHours() {
   const now = new Date();
-  const open = new Date(now); open.setHours(9, 0, 0, 0);
-  const close = new Date(now); close.setHours(20, 0, 0, 0);
+  const todayHours = BUSINESS_HOURS[now.getDay()];
+  if (!todayHours) return false;
+  const open = new Date(now); open.setHours(todayHours.open, 0, 0, 0);
+  const close = new Date(now); close.setHours(todayHours.close, 0, 0, 0);
   return now >= open && now <= close;
 }
 if (!isWithinOrderingHours()) {
   document.getElementById('orderApp').style.display = 'none';
   document.getElementById('closedScreen').style.display = 'flex';
+  const now = new Date();
+  const msg = document.getElementById('closedMessage');
+  if (now.getDay() === 0) {
+    msg.textContent = "We're closed on Sundays. Come back Monday between 9:00 AM and 8:00 PM!";
+  } else {
+    const todayHours = BUSINESS_HOURS[now.getDay()];
+    msg.textContent = `We are currently closed. Come back between ${hoursLabel(todayHours.open)} and ${hoursLabel(todayHours.close)} today to place your order.`;
+  }
 }
 
 /* ══════════════════ STATE ══════════════════ */
@@ -553,6 +582,28 @@ document.querySelectorAll('.order-type-btn').forEach(btn => {
   });
 });
 
+/* Owner can temporarily disable Delivery for a date range (Settings tab, owner-dashboard.html). */
+(async () => {
+  const { data } = await insforge.database.from('settings').select('value').eq('key', 'delivery_window').maybeSingle();
+  if (!data?.value) return;
+  let win;
+  try { win = JSON.parse(data.value); } catch { return; }
+  if (!win?.from) return;
+  const now = new Date();
+  const from = new Date(win.from);
+  const until = win.until ? new Date(win.until) : null;
+  const disabledNow = now >= from && (!until || now <= until);
+  if (!disabledNow) return;
+
+  const btn = document.getElementById('deliveryTypeBtn');
+  btn.classList.add('disabled');
+  const note = document.getElementById('deliveryUnavailableNote');
+  note.style.display = 'block';
+  note.textContent = win.until
+    ? `Delivery is temporarily unavailable until ${new Date(win.until).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}. Pickup is still available.`
+    : `Delivery is temporarily unavailable. Pickup is still available.`;
+})();
+
 /* ══════════════════ STEP 2: SCHEDULE ══════════════════ */
 const dateInput = document.getElementById('orderDate');
 const todayStr = ymd(new Date());
@@ -566,24 +617,32 @@ function ymd(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function buildTimeSlots() {
+function buildTimeSlots(open, close) {
   const slots = [];
-  for (let h = 9; h <= 20; h++) {
+  for (let h = open; h <= close; h++) {
     for (const m of [0, 30]) {
-      if (h === 20 && m === 30) continue;
+      if (h === close && m === 30) continue;
       slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
     }
   }
   return slots;
 }
-const ALL_SLOTS = buildTimeSlots();
 
 function renderSlots() {
   const grid = document.getElementById('slotGrid');
   grid.innerHTML = '';
+  const selectedDate = new Date(state.date + 'T00:00:00');
+  const dayHours = BUSINESS_HOURS[selectedDate.getDay()];
+
+  if (!dayHours) {
+    grid.innerHTML = `<div class="empty-cart">We're closed on Sundays — please pick another date.</div>`;
+    return;
+  }
+
+  const daySlots = buildTimeSlots(dayHours.open, dayHours.close);
   const now = new Date();
   const minAllowed = new Date(now.getTime() + 30 * 60000);
-  ALL_SLOTS.forEach(slot => {
+  daySlots.forEach(slot => {
     const [h, m] = slot.split(':').map(Number);
     const slotDate = new Date(state.date + 'T00:00:00');
     slotDate.setHours(h, m, 0, 0);

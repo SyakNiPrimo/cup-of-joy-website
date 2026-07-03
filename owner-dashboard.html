@@ -404,6 +404,24 @@
     </div>
 
     <div class="card">
+      <h2>Delivery Availability</h2>
+      <p style="font-size:.8rem; opacity:.65; font-weight:600; margin-bottom:1rem;">Temporarily turn off the Delivery option on the online ordering page for a date range — e.g. bad weather, no rider available. Pickup is unaffected.</p>
+      <div class="biz-info-row" style="border-bottom:none;">
+        <span>Status</span>
+        <span id="deliveryStatusLabel">—</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:.9rem;">
+        <div><label for="deliveryDisableFrom">Disable From</label><input type="datetime-local" id="deliveryDisableFrom" /></div>
+        <div><label for="deliveryDisableUntil">Disable Until (optional — blank = indefinite)</label><input type="datetime-local" id="deliveryDisableUntil" /></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="deliveryClearBtn" type="button">Re-enable Delivery Now</button>
+        <button class="btn btn-dark" id="deliverySaveBtn" type="button">Save</button>
+      </div>
+      <div class="msg" id="deliveryMsg"></div>
+    </div>
+
+    <div class="card">
       <div class="card-head">
         <h2>Low Stock Warnings — Ingredient Stock Levels</h2>
         <button class="btn btn-dark btn-sm" id="saveStockBtn" type="button">Save</button>
@@ -1602,10 +1620,40 @@ async function setSetting(key, value) {
 
 function ingId(ing) { return ing.replace(/\s+/g, '-'); }
 
+function toDatetimeLocal(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtDeliveryDate(iso) {
+  return new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function computeDeliveryStatus(win) {
+  if (!win || !win.from) return { state: 'available' };
+  const now = new Date();
+  const from = new Date(win.from);
+  const until = win.until ? new Date(win.until) : null;
+  if (now < from) return { state: 'scheduled', win };
+  if (until && now > until) return { state: 'available' };
+  return { state: 'disabled', win };
+}
+function renderDeliveryStatus(win) {
+  const status = computeDeliveryStatus(win);
+  const el = document.getElementById('deliveryStatusLabel');
+  if (status.state === 'disabled') {
+    el.innerHTML = `<span class="badge voided">Disabled</span> ${win.until ? 'until ' + fmtDeliveryDate(win.until) : '(no end date set)'}`;
+  } else if (status.state === 'scheduled') {
+    el.innerHTML = `<span class="badge edited">Scheduled</span> disables ${fmtDeliveryDate(win.from)}${win.until ? ' until ' + fmtDeliveryDate(win.until) : ' (indefinitely)'}`;
+  } else {
+    el.innerHTML = `<span class="badge active">Available</span>`;
+  }
+}
+
 async function loadSettings() {
-  const [shopName, address, lat, lng, radius, allowDiscount, stockJson] = await Promise.all([
+  const [shopName, address, lat, lng, radius, allowDiscount, stockJson, deliveryWindowJson] = await Promise.all([
     getSetting('shop_name'), getSetting('shop_address'), getSetting('shop_lat'), getSetting('shop_lng'),
-    getSetting('radius_meters'), getSetting('allow_staff_discount'), getSetting('ingredient_stock')
+    getSetting('radius_meters'), getSetting('allow_staff_discount'), getSetting('ingredient_stock'), getSetting('delivery_window')
   ]);
 
   document.getElementById('bizShopName').textContent = shopName || 'Cup of Joy';
@@ -1613,6 +1661,11 @@ async function loadSettings() {
   document.getElementById('bizCoords').textContent = (lat && lng) ? `${lat}, ${lng}` : '—';
   document.getElementById('radiusInput').value = radius || 50;
   document.getElementById('allowDiscountToggle').checked = allowDiscount === 'true';
+
+  const deliveryWindow = deliveryWindowJson ? JSON.parse(deliveryWindowJson) : null;
+  document.getElementById('deliveryDisableFrom').value = toDatetimeLocal(deliveryWindow?.from);
+  document.getElementById('deliveryDisableUntil').value = toDatetimeLocal(deliveryWindow?.until);
+  renderDeliveryStatus(deliveryWindow);
 
   const stockMap = stockJson ? JSON.parse(stockJson) : {};
   const grid = document.getElementById('ingredientGrid');
@@ -1650,6 +1703,35 @@ document.getElementById('allowDiscountToggle').addEventListener('change', async 
   await setSetting('allow_staff_discount', e.target.checked ? 'true' : 'false');
   const msg = document.getElementById('discountMsg');
   msg.textContent = 'Discount setting saved.';
+  msg.className = 'msg show success';
+  setTimeout(() => msg.className = 'msg', 3000);
+});
+
+document.getElementById('deliverySaveBtn').addEventListener('click', async () => {
+  const fromVal = document.getElementById('deliveryDisableFrom').value;
+  const untilVal = document.getElementById('deliveryDisableUntil').value;
+  const msg = document.getElementById('deliveryMsg');
+  if (!fromVal) {
+    msg.textContent = 'Set a "Disable From" date, or use "Re-enable Delivery Now" to clear it.';
+    msg.className = 'msg show error';
+    setTimeout(() => msg.className = 'msg', 3500);
+    return;
+  }
+  const win = { from: new Date(fromVal).toISOString(), until: untilVal ? new Date(untilVal).toISOString() : null };
+  await setSetting('delivery_window', JSON.stringify(win));
+  renderDeliveryStatus(win);
+  msg.textContent = 'Delivery availability saved.';
+  msg.className = 'msg show success';
+  setTimeout(() => msg.className = 'msg', 3000);
+});
+
+document.getElementById('deliveryClearBtn').addEventListener('click', async () => {
+  document.getElementById('deliveryDisableFrom').value = '';
+  document.getElementById('deliveryDisableUntil').value = '';
+  await setSetting('delivery_window', '');
+  renderDeliveryStatus(null);
+  const msg = document.getElementById('deliveryMsg');
+  msg.textContent = 'Delivery re-enabled.';
   msg.className = 'msg show success';
   setTimeout(() => msg.className = 'msg', 3000);
 });

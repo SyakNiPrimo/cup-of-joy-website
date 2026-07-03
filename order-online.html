@@ -7,7 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js"></script>
+<!-- cdnjs does not host an EmailJS build (confirmed via the cdnjs API), so this loads the
+     official package from jsDelivr instead — same EmailJS service, just a working CDN path. -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -404,7 +406,7 @@ const EMAILJS_SERVICE_ID = 'service_cmw6ymw';
 const EMAILJS_TEMPLATE_ID = 'template_d8peb24';
 const EMAILJS_PUBLIC_KEY = '2FZtgmNY1B7IgVLUt';
 const NOTIFY_EMAILS = 'joyie7696@gmail.com,benedick.tiaga04@gmail.com';
-if (window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY);
+if (window.emailjs) emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 /* ══════════════════ CONSTANTS ══════════════════ */
 const SHOP_LAT = 16.230069995562978;

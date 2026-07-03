@@ -484,12 +484,17 @@ const BREADS_AND_PASTRIES = [
 
 const CAKES = [flatItem('Yema Cake', 120), flatItem('Ube Cake', 125)];
 
+const SNACKS = [
+  { name: 'Fries', options: [{ label: 'Regular', price: 30 }, { label: 'Large', price: 50 }], flavors: ['Cheeze', 'BBQ', 'Sour Cream'] }
+];
+
 const CATEGORIES = [
   { name: 'Coffee', items: COFFEE },
   { name: 'Milk Based', items: MILK_BASED },
   { name: 'Fruit Soda', items: FRUIT_SODA, customMix: true },
   { name: 'Breads and Pastries', items: BREADS_AND_PASTRIES },
-  { name: 'Cakes', items: CAKES }
+  { name: 'Cakes', items: CAKES },
+  { name: 'Snacks', items: SNACKS }
 ];
 
 const money = n => `₱${(Number(n) || 0).toFixed(2)}`;
@@ -665,7 +670,7 @@ CATEGORIES.forEach((cat, ci) => {
 
   cat.items.forEach((item, ii) => {
     const key = `${ci}-${ii}`;
-    itemUiState[key] = { optIdx: 0, qty: 1, note: '' };
+    itemUiState[key] = { optIdx: 0, flavorIdx: 0, qty: 1, note: '' };
     section.appendChild(buildItemCard(cat, item, key));
   });
 
@@ -682,9 +687,12 @@ function buildItemCard(cat, item, key) {
 
   const priceLabel = () => money(item.options[st.optIdx].price);
 
+  const hasFlavors = !!item.flavors;
+
   card.innerHTML = `
     <div class="item-head"><span class="item-name">${item.name}</span><span class="item-price" data-price>${priceLabel()}</span></div>
     ${hasOptions ? `<div class="opt-row" data-opts></div>` : ''}
+    ${hasFlavors ? `<div class="opt-row" data-flavors></div>` : ''}
     <div class="qty-note-row">
       <div class="qty-stepper">
         <button type="button" data-minus>−</button>
@@ -713,6 +721,22 @@ function buildItemCard(cat, item, key) {
     });
   }
 
+  if (hasFlavors) {
+    const flavorRow = card.querySelector('[data-flavors]');
+    item.flavors.forEach((flavor, fi) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'opt-chip' + (fi === 0 ? ' selected' : '');
+      chip.textContent = flavor;
+      chip.addEventListener('click', () => {
+        st.flavorIdx = fi;
+        flavorRow.querySelectorAll('.opt-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+      });
+      flavorRow.appendChild(chip);
+    });
+  }
+
   card.querySelector('[data-minus]').addEventListener('click', () => {
     st.qty = Math.max(1, st.qty - 1);
     card.querySelector('[data-qty]').textContent = st.qty;
@@ -730,15 +754,19 @@ function buildItemCard(cat, item, key) {
     addToCart({
       name: item.name,
       category: cat.name,
-      size: isSized && opt.label !== 'Standard' ? opt.label : null,
-      variant: isSoda && opt.label !== 'Standard' ? opt.label : null,
+      size: hasFlavors ? opt.label : (isSized && opt.label !== 'Standard' ? opt.label : null),
+      variant: hasFlavors ? item.flavors[st.flavorIdx] : (isSoda && opt.label !== 'Standard' ? opt.label : null),
       unitPrice: opt.price,
       quantity: st.qty,
       notes: st.note || null
     });
-    st.qty = 1; st.note = '';
+    st.qty = 1; st.note = ''; st.flavorIdx = 0;
     card.querySelector('[data-qty]').textContent = '1';
     card.querySelector('[data-note]').value = '';
+    if (hasFlavors) {
+      const flavorRow = card.querySelector('[data-flavors]');
+      flavorRow.querySelectorAll('.opt-chip').forEach((c, i) => c.classList.toggle('selected', i === 0));
+    }
     flashAdded(card);
   });
 

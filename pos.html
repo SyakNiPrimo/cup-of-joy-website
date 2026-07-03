@@ -766,7 +766,8 @@ const RICE_BOWL = [
 
 const SNACKS = [
   { name: 'Siomai', price: 20 }, { name: 'Fishball', price: 20 }, { name: 'Kikiam', price: 20 },
-  { name: 'Fries', price: 30 }, { name: 'Nachos', price: 50 }, { name: 'Pancit Canton', price: 30 },
+  { name: 'Fries', sizeOptions: [{ label: 'Regular', price: 30 }, { label: 'Large', price: 50 }], variants: ['Cheeze', 'BBQ', 'Sour Cream'] },
+  { name: 'Nachos', price: 50 }, { name: 'Pancit Canton', price: 30 },
   { name: 'Beef Noodles', price: 30 }, { name: 'Chicken Noodles', price: 30 }, { name: 'Seafood Noodles', price: 35 },
   { name: 'Jjampong', price: 35 }, { name: 'Jin Ramen', price: 70 }, { name: 'Arroz Caldo', price: 65 }
 ];
@@ -881,8 +882,10 @@ function buildItemCard(cat, item, key) {
   const hasSize = item.price16 !== undefined || hasSizeAndVariantPrice;
   const hasVariantPrice = item.priceRegular !== undefined || hasSizeAndVariantPrice;
   const hasHotIced = !!item.variants;
+  const hasSizeOptions = !!item.sizeOptions; // custom-labeled, custom-priced sizes (e.g. Fries Regular/Large)
 
   if (hasSize) cardState[key] = { size: '16' };
+  if (hasSizeOptions) cardState[key] = { ...cardState[key], sizeIdx: 0 };
   if (hasHotIced) cardState[key] = { ...cardState[key], variant: item.variants[0] };
   if (hasVariantPrice) cardState[key] = { ...cardState[key], variant: 'Regular' };
 
@@ -892,6 +895,7 @@ function buildItemCard(cat, item, key) {
       if (sz === '16') return v === 'Regular' ? item.price16Regular : item.price16Yogurt;
       return v === 'Regular' ? item.price22Regular : item.price22Yogurt;
     }
+    if (hasSizeOptions) return item.sizeOptions[cardState[key].sizeIdx].price;
     if (hasSize) return cardState[key].size === '16' ? item.price16 : item.price22;
     if (hasVariantPrice) return cardState[key].variant === 'Regular' ? item.priceRegular : item.priceYogurt;
     return item.price;
@@ -927,6 +931,25 @@ function buildItemCard(cat, item, key) {
       b.textContent = sz + 'oz';
       b.addEventListener('click', () => {
         cardState[key].size = sz;
+        sizeToggle.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        priceEl.textContent = money(currentPrice());
+      });
+      sizeToggle.appendChild(b);
+    });
+    card.appendChild(sizeToggle);
+  }
+
+  if (hasSizeOptions) {
+    const sizeToggle = document.createElement('div');
+    sizeToggle.className = 'toggle-group';
+    item.sizeOptions.forEach((opt, oi) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'toggle-btn' + (cardState[key].sizeIdx === oi ? ' active' : '');
+      b.textContent = `${opt.label} · ${money(opt.price)}`;
+      b.addEventListener('click', () => {
+        cardState[key].sizeIdx = oi;
         sizeToggle.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
         priceEl.textContent = money(currentPrice());
@@ -981,7 +1004,7 @@ function buildItemCard(cat, item, key) {
     addToCart({
       name: item.name,
       category: cat.name,
-      size: hasSize ? cardState[key].size + 'oz' : null,
+      size: hasSizeOptions ? item.sizeOptions[cardState[key].sizeIdx].label : (hasSize ? cardState[key].size + 'oz' : null),
       variant: hasHotIced || hasVariantPrice ? cardState[key].variant : null,
       unitPrice: currentPrice(),
       addons: [],

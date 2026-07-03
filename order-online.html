@@ -387,8 +387,9 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
 
+const INSFORGE_BASE_URL = 'https://pvpiya9j.us-east.insforge.app';
 const insforge = createClient({
-  baseUrl: 'https://pvpiya9j.us-east.insforge.app',
+  baseUrl: INSFORGE_BASE_URL,
   anonKey: 'anon_e730824779c5d7b0e80185ec5b848574506f206fe52184ad17ff69d633586a1b'
 });
 
@@ -1080,8 +1081,12 @@ function sendTelegramNotification(orderNumber, subtotal, total) {
     return `- ${c.name}${meta ? ' (' + meta + ')' : ''} x${c.quantity} = ${money(c.lineTotal)}${c.notes ? ' [Note: ' + c.notes + ']' : ''}`;
   }).join('\n');
 
-  insforge.functions.invoke('notify-telegram', {
-    body: {
+  /* insforge.functions.invoke() derives the wrong host for this project's function runtime,
+     so this calls the documented REST route directly: POST {baseUrl}/functions/{slug}. */
+  fetch(`${INSFORGE_BASE_URL}/functions/notify-telegram`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
       order_number: orderNumber,
       customer_name: state.name,
       mobile_number: state.mobile,
@@ -1094,7 +1099,7 @@ function sendTelegramNotification(orderNumber, subtotal, total) {
       grand_total: total,
       payment_method: state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup',
       gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef : '—'
-    }
+    })
   }).catch(err => console.error('Telegram notify failed:', err));
 }
 

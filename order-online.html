@@ -155,9 +155,24 @@
   .pay-option.selected { border-color: var(--brown); background: var(--cream); }
   .pay-option input { width: 18px; height: 18px; }
   .pay-option .pay-label { font-weight: 900; font-size: .9rem; }
+  .pay-option .pay-sub { font-weight: 700; font-size: .72rem; opacity: .6; text-transform: none; letter-spacing: 0; }
   .qr-box { text-align: center; margin: 1rem 0; }
-  .qr-box img { max-width: 220px; width: 100%; border-radius: 12px; border: 3px solid var(--yellow); }
+  .qr-box img { max-width: 280px; min-width: 250px; min-height: 250px; width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 12px; border: 3px solid var(--yellow); background: #fff; }
   .note-box { background: var(--cream); border-radius: 10px; padding: .8rem 1rem; font-weight: 700; font-size: .8rem; margin: .8rem 0; line-height: 1.5; }
+  .note-box.error { background: #fdecea; color: var(--red); }
+  .qr-amount { text-align: center; font-weight: 900; font-size: 1.05rem; color: var(--brown-light); margin-top: .5rem; }
+  .pay-badges { display: flex; justify-content: center; gap: .5rem; margin: .7rem 0; flex-wrap: wrap; }
+  .pay-badge { background: var(--brown); color: var(--yellow); font-weight: 800; font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; padding: .35rem .8rem; border-radius: 50px; }
+  .qr-status { display: flex; align-items: center; justify-content: center; gap: .5rem; font-weight: 800; font-size: .85rem; margin-top: .8rem; }
+  .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 0 rgba(250,218,42,.7); animation: pulseDot 1.4s infinite; }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(250,218,42,.6); }
+    70% { box-shadow: 0 0 0 10px rgba(250,218,42,0); }
+    100% { box-shadow: 0 0 0 0 rgba(250,218,42,0); }
+  }
+  .qr-countdown { text-align: center; font-weight: 700; font-size: .8rem; opacity: .65; margin-top: .4rem; }
+  .qr-spinner { width: 40px; height: 40px; border: 4px solid #eee3c8; border-top-color: var(--yellow); border-radius: 50%; margin: 0 auto; animation: qrSpin .8s linear infinite; }
+  @keyframes qrSpin { to { transform: rotate(360deg); } }
 
   /* ── STEP 7: CONFIRMATION ── */
   .confirm-head { text-align: center; padding: 1rem 0 1.5rem; }
@@ -178,12 +193,6 @@
   .btn-ghost { background: none; color: var(--brown-light); border: 2px solid #eee3c8; }
   .bottom-info { font-weight: 800; font-size: .82rem; text-align: center; flex: 1; }
   .bottom-info .bi-total { color: var(--brown-light); font-weight: 900; }
-
-  .loading-overlay {
-    position: fixed; inset: 0; background: rgba(61,32,0,.55); display: none; align-items: center; justify-content: center;
-    z-index: 500; color: #fff; font-weight: 800; font-size: 1rem; text-align: center;
-  }
-  .loading-overlay.show { display: flex; }
 
   @media (max-width: 480px) {
     header.site-head img { height: 40px; }
@@ -316,32 +325,46 @@
     <section class="step-panel" data-step="6">
       <div class="card">
         <h2>Payment Method</h2>
-        <label class="pay-option" data-method="gcash">
-          <input type="radio" name="payMethod" value="gcash" />
-          <span class="pay-label">GCash</span>
+        <label class="pay-option" data-method="qrph">
+          <input type="radio" name="payMethod" value="qrph" />
+          <span class="pay-label">QR Ph<br><span class="pay-sub">GCash, Maya, GoTyme, any bank app</span></span>
         </label>
-        <label class="pay-option" data-method="cod">
-          <input type="radio" name="payMethod" value="cod" />
+        <label class="pay-option" data-method="cash">
+          <input type="radio" name="payMethod" value="cash" />
           <span class="pay-label">Cash on Delivery / Pickup</span>
         </label>
 
-        <div id="gcashPanel" style="display:none">
-          <div class="qr-box"><img src="gcash-qr.png" alt="GCash QR Code" /></div>
-          <div class="note-box" id="gcashInstructions"></div>
-          <div class="field">
-            <label for="gcashRef">GCash Reference Number</label>
-            <input type="text" id="gcashRef" placeholder="e.g. 1234567890123" />
-            <div class="field-error" id="errGcashRef">Reference number is required for GCash payments.</div>
+        <div id="qrphPanel" style="display:none">
+          <div id="qrphIntro">
+            <button type="button" class="btn-add" id="proceedToPaymentBtn">Proceed to Payment</button>
           </div>
-          <div class="field">
-            <label for="gcashProof">Upload Payment Screenshot (optional but encouraged)</label>
-            <input type="file" id="gcashProof" accept="image/*" />
+          <div id="qrphLoading" style="display:none; text-align:center; padding:1rem 0;">
+            <div class="qr-spinner"></div>
+            <p style="margin-top:.7rem; font-weight:700;">Generating your QR code…</p>
           </div>
-          <div class="note-box">Your order will be prepared once payment is verified by our team.</div>
+          <div id="qrphDisplay" style="display:none">
+            <div class="qr-amount">Amount to pay: <span id="qrphAmount"></span></div>
+            <div class="qr-box"><img id="qrphImage" alt="QR Ph code to scan" /></div>
+            <div class="pay-badges">
+              <span class="pay-badge">GCash</span><span class="pay-badge">Maya</span><span class="pay-badge">GoTyme</span>
+            </div>
+            <div class="note-box">Open your GCash, Maya, GoTyme, or any bank app and scan this QR code to pay</div>
+            <div class="qr-status"><span class="pulse-dot"></span><span id="qrphStatusText">Waiting for payment…</span></div>
+            <div class="qr-countdown">Expires in <span id="qrphCountdown">10:00</span></div>
+          </div>
+          <div id="qrphExpired" style="display:none">
+            <div class="note-box error">Your QR code has expired.</div>
+            <button type="button" class="btn-add" id="regenerateQrBtn">Generate New QR</button>
+          </div>
+          <div id="qrphFailed" style="display:none">
+            <div class="note-box error">Payment was not completed. Please try again.</div>
+            <button type="button" class="btn-add" id="retryQrBtn">Try Again</button>
+          </div>
         </div>
 
-        <div id="codPanel" style="display:none">
-          <div class="note-box" id="codInstructions"></div>
+        <div id="cashPanel" style="display:none">
+          <div class="note-box" id="cashInstructions"></div>
+          <button type="button" class="btn-add" id="confirmCashOrderBtn">Confirm Order</button>
         </div>
       </div>
     </section>
@@ -367,8 +390,8 @@
         <div class="summary-row" id="confirmAddrRow" style="display:none"><span>Address</span><span id="confirmAddr"></span></div>
         <div class="summary-row"><span>Payment</span><span id="confirmPayment"></span></div>
       </div>
-      <div class="card" id="confirmGcashNote" style="display:none">
-        <div class="note-box">Please send the exact amount and keep your reference number. Your order will be prepared once payment is verified.</div>
+      <div class="card">
+        <div class="note-box" id="confirmPaymentNote"></div>
       </div>
       <div class="card" style="text-align:center">
         <p style="font-weight:800; margin-bottom: .5rem;">Thank you Joymate! We will prepare your order for your scheduled time.</p>
@@ -385,8 +408,6 @@
     <button class="btn btn-primary" id="nextBtn" type="button">Next</button>
   </div>
 </div>
-
-<div class="loading-overlay" id="loadingOverlay">Placing your order…</div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@insforge/sdk@latest';
@@ -566,7 +587,11 @@ const state = {
   distanceKm: null, deliveryFee: 0,
   cart: [],
   customMixSelection: [],
-  paymentMethod: null, gcashRef: '', gcashProofFile: null
+  paymentMethod: null,
+  orderId: null, orderNumber: null,
+  paymentIntentId: null,
+  pollTimer: null, countdownTimer: null, countdownSeconds: 600,
+  lastPaymentStatus: null
 };
 
 const STEP_LABELS = ['Order Type', 'Schedule', 'Your Details', 'Menu', 'Cart', 'Payment', 'Confirmation'];
@@ -669,14 +694,6 @@ function to12h(slot) {
   return `${h12}:${String(m).padStart(2, '0')} ${period}`;
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]); // strip the data: URL prefix
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 dateInput.addEventListener('change', () => {
   state.date = dateInput.value || todayStr;
   state.time = null;
@@ -990,18 +1007,180 @@ document.querySelectorAll('.pay-option').forEach(opt => {
     document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
     opt.classList.add('selected');
     opt.querySelector('input').checked = true;
-    document.getElementById('gcashPanel').style.display = state.paymentMethod === 'gcash' ? 'block' : 'none';
-    document.getElementById('codPanel').style.display = state.paymentMethod === 'cod' ? 'block' : 'none';
-    const total = grandTotal();
-    document.getElementById('gcashInstructions').textContent =
-      `Scan the QR code using your GCash app. Send the exact amount of ${money(total)}. Take a screenshot of your payment confirmation.`;
-    document.getElementById('codInstructions').textContent =
-      `Please prepare the exact amount of ${money(total)} upon delivery or pickup.`;
+    document.getElementById('qrphPanel').style.display = state.paymentMethod === 'qrph' ? 'block' : 'none';
+    document.getElementById('cashPanel').style.display = state.paymentMethod === 'cash' ? 'block' : 'none';
+    document.getElementById('cashInstructions').textContent =
+      `Please prepare the exact amount of ${money(grandTotal())} upon delivery or pickup.`;
     updateBottomBar();
   });
 });
-document.getElementById('gcashRef').addEventListener('input', e => { state.gcashRef = e.target.value; updateBottomBar(); });
-document.getElementById('gcashProof').addEventListener('change', e => { state.gcashProofFile = e.target.files[0] || null; });
+
+function showQrphState(name) {
+  ['qrphIntro', 'qrphLoading', 'qrphDisplay', 'qrphExpired', 'qrphFailed'].forEach(id => {
+    document.getElementById(id).style.display = id === name ? 'block' : 'none';
+  });
+}
+
+function stopQrphTimers() {
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
+  if (state.countdownTimer) { clearInterval(state.countdownTimer); state.countdownTimer = null; }
+}
+
+function formatCountdown(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+async function insertPendingOrder(paymentMethodLabel) {
+  const subtotal = cartSubtotal();
+  const total = grandTotal();
+
+  const { data: orderNumData, error: numErr } = await insforge.database.rpc('next_online_order_number');
+  if (numErr) throw numErr;
+  const orderNumber = Array.isArray(orderNumData) ? orderNumData[0] : orderNumData;
+
+  const { data: orderRows, error: insertErr } = await insforge.database
+    .from('online_orders')
+    .insert([{
+      order_number: orderNumber,
+      customer_name: state.name.trim(),
+      mobile_number: state.mobile,
+      order_type: state.orderType,
+      scheduled_date: state.date,
+      scheduled_time: state.time,
+      delivery_address: state.orderType === 'delivery' ? state.address.trim() : null,
+      barangay: state.orderType === 'delivery' ? state.barangay : null,
+      landmark: state.orderType === 'delivery' ? (state.landmark.trim() || null) : null,
+      distance_km: state.orderType === 'delivery' ? state.distanceKm : null,
+      delivery_fee: state.orderType === 'delivery' ? state.deliveryFee : 0,
+      subtotal, grand_total: total,
+      payment_method: paymentMethodLabel,
+      payment_status: 'pending',
+      status: 'Pending'
+    }])
+    .select();
+  if (insertErr) throw insertErr;
+  const orderId = orderRows[0].id;
+
+  const itemRows = state.cart.map(c => ({
+    online_order_id: orderId,
+    item_name: c.name, category: c.category, size: c.size, variant: c.variant,
+    notes: c.notes, unit_price: c.unitPrice, quantity: c.quantity, line_total: c.lineTotal
+  }));
+  const { error: itemsErr } = await insforge.database.from('online_order_items').insert(itemRows);
+  if (itemsErr) throw itemsErr;
+
+  state.orderId = orderId;
+  state.orderNumber = orderNumber;
+  return { orderId, orderNumber, subtotal, total };
+}
+
+async function createQrphPayment() {
+  showQrphState('qrphLoading');
+  try {
+    if (!state.orderId) {
+      await insertPendingOrder('QR Ph');
+    }
+    const total = grandTotal();
+    const res = await fetch('/api/create-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: Math.round(total * 100),
+        order_number: state.orderNumber,
+        description: `Cup of Joy order ${state.orderNumber}`
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'Failed to create payment');
+
+    state.paymentIntentId = data.payment_intent_id;
+    state.lastPaymentStatus = data.status;
+    await insforge.database.from('online_orders').update({ payment_intent_id: data.payment_intent_id }).eq('id', state.orderId);
+
+    document.getElementById('qrphAmount').textContent = money(total);
+    document.getElementById('qrphImage').src = data.qr_code_url;
+    document.getElementById('qrphStatusText').textContent = 'Waiting for payment…';
+    showQrphState('qrphDisplay');
+
+    state.countdownSeconds = 600;
+    document.getElementById('qrphCountdown').textContent = formatCountdown(state.countdownSeconds);
+    stopQrphTimers();
+    state.countdownTimer = setInterval(() => {
+      state.countdownSeconds--;
+      document.getElementById('qrphCountdown').textContent = formatCountdown(Math.max(0, state.countdownSeconds));
+      if (state.countdownSeconds <= 0) {
+        stopQrphTimers();
+        showQrphState('qrphExpired');
+      }
+    }, 1000);
+    state.pollTimer = setInterval(pollPaymentStatus, 5000);
+  } catch (err) {
+    console.error('Create payment failed:', err);
+    showQrphState('qrphFailed');
+  }
+}
+
+async function pollPaymentStatus() {
+  try {
+    const res = await fetch('/api/verify-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_intent_id: state.paymentIntentId })
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+
+    if (data.paid) {
+      stopQrphTimers();
+      const paidAt = new Date().toISOString();
+      await insforge.database.from('online_orders').update({
+        payment_status: 'paid',
+        paid_at: paidAt,
+        paymongo_reference: data.reference
+      }).eq('id', state.orderId);
+
+      const { subtotal, total } = cartTotals();
+      sendOwnerEmail(state.orderNumber, subtotal, total, 'paid', data.reference);
+      sendTelegramNotification(state.orderNumber, subtotal, total, 'paid', data.reference);
+      renderConfirmation(state.orderNumber, subtotal, total, 'paid');
+      goToStep(7);
+    } else if (data.status === 'awaiting_payment_method' && state.lastPaymentStatus === 'awaiting_next_action') {
+      // Bounced back after a declined/cancelled attempt.
+      stopQrphTimers();
+      showQrphState('qrphFailed');
+    }
+    state.lastPaymentStatus = data.status;
+  } catch (err) {
+    console.error('Poll payment status failed:', err);
+  }
+}
+
+function cartTotals() {
+  return { subtotal: cartSubtotal(), total: grandTotal() };
+}
+
+document.getElementById('proceedToPaymentBtn').addEventListener('click', createQrphPayment);
+document.getElementById('regenerateQrBtn').addEventListener('click', createQrphPayment);
+document.getElementById('retryQrBtn').addEventListener('click', createQrphPayment);
+
+document.getElementById('confirmCashOrderBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('confirmCashOrderBtn');
+  btn.disabled = true;
+  try {
+    const { orderNumber, subtotal, total } = await insertPendingOrder('Cash');
+    sendOwnerEmail(orderNumber, subtotal, total, 'pending', null);
+    sendTelegramNotification(orderNumber, subtotal, total, 'pending', null);
+    renderConfirmation(orderNumber, subtotal, total, 'pending');
+    goToStep(7);
+  } catch (err) {
+    console.error(err);
+    alert('Sorry, something went wrong placing your order. Please try again or message us on Facebook.');
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 /* ══════════════════ STEP NAVIGATION ══════════════════ */
 function showFieldError(id, show) { document.getElementById(id).classList.toggle('show', show); }
@@ -1025,15 +1204,6 @@ function validateStep(step) {
   }
   if (step === 4) return state.cart.length > 0;
   if (step === 5) return state.cart.length > 0;
-  if (step === 6) {
-    if (!state.paymentMethod) return false;
-    if (state.paymentMethod === 'gcash') {
-      const refOk = state.gcashRef.trim().length > 0;
-      showFieldError('errGcashRef', !refOk);
-      return refOk;
-    }
-    return true;
-  }
   return true;
 }
 
@@ -1044,7 +1214,10 @@ function goToStep(n) {
   document.getElementById('progressLabel').textContent = `Step ${n} of 7 — ${STEP_LABELS[n - 1]}`;
   document.getElementById('progressFill').style.width = `${(n / 7) * 100}%`;
   document.getElementById('backBtn').style.visibility = n === 1 ? 'hidden' : 'visible';
-  document.getElementById('bottomBar').style.display = n === 7 ? 'none' : 'flex';
+  // Step 6 progresses via its own inline buttons (Proceed to Payment / Confirm Order), not
+  // the global Next button — payment confirmation is async and has too many states
+  // (loading/waiting/expired/failed) to represent as a single "Next" click.
+  document.getElementById('bottomBar').style.display = (n === 6 || n === 7) ? 'none' : 'flex';
   if (n === 5) renderCart();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   updateBottomBar();
@@ -1057,119 +1230,31 @@ function updateBottomBar() {
   nextBtn.disabled = !validateStep(n);
   if (n === 4 || n === 5) {
     info.innerHTML = `${state.cart.length} item${state.cart.length === 1 ? '' : 's'} · <span class="bi-total">${money(grandTotal())}</span>`;
-  } else if (n === 6) {
-    info.innerHTML = `<span class="bi-total">${money(grandTotal())}</span>`;
   } else {
     info.textContent = '';
   }
-  nextBtn.textContent = n === 6 ? 'Place Order' : (n === 1 ? 'Next' : 'Next');
+  nextBtn.textContent = 'Next';
 }
 
 document.getElementById('backBtn').addEventListener('click', () => goToStep(state.step - 1));
-document.getElementById('nextBtn').addEventListener('click', async () => {
+document.getElementById('nextBtn').addEventListener('click', () => {
   if (!validateStep(state.step)) return;
-  if (state.step === 6) {
-    await submitOrder();
-    return;
-  }
   goToStep(state.step + 1);
 });
 
 updateBottomBar();
 
-/* ══════════════════ SUBMIT ORDER ══════════════════ */
-async function submitOrder() {
-  const overlay = document.getElementById('loadingOverlay');
-  overlay.classList.add('show');
-  document.getElementById('nextBtn').disabled = true;
-
-  try {
-    const subtotal = cartSubtotal();
-    const total = grandTotal();
-
-    const { data: orderNumData, error: numErr } = await insforge.database.rpc('next_online_order_number');
-    if (numErr) throw numErr;
-    const orderNumber = Array.isArray(orderNumData) ? orderNumData[0] : orderNumData;
-
-    // The screenshot is optional — a flaky connection (or a hiccup on the upload function)
-    // must never cost the customer their whole order. Failures here are swallowed.
-    // Uploaded via a server-side function rather than insforge.storage directly: this
-    // project's anon role has no direct storage write access (platform security hardening),
-    // so the file goes up as base64 JSON to a function that holds an elevated key.
-    let screenshotUrl = null;
-    if (state.paymentMethod === 'gcash' && state.gcashProofFile) {
-      try {
-        const dataBase64 = await fileToBase64(state.gcashProofFile);
-        const res = await fetch(`${INSFORGE_BASE_URL}/functions/upload-payment-proof`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: state.gcashProofFile.name,
-            mimeType: state.gcashProofFile.type,
-            dataBase64
-          })
-        });
-        const uploadData = await res.json();
-        if (!res.ok) throw new Error(uploadData?.error || 'Upload failed');
-        screenshotUrl = uploadData.url;
-      } catch (uploadEx) {
-        console.error('GCash screenshot upload failed, continuing without it:', uploadEx);
-      }
-    }
-
-    const { data: orderRows, error: insertErr } = await insforge.database
-      .from('online_orders')
-      .insert([{
-        order_number: orderNumber,
-        customer_name: state.name.trim(),
-        mobile_number: state.mobile,
-        order_type: state.orderType,
-        scheduled_date: state.date,
-        scheduled_time: state.time,
-        delivery_address: state.orderType === 'delivery' ? state.address.trim() : null,
-        barangay: state.orderType === 'delivery' ? state.barangay : null,
-        landmark: state.orderType === 'delivery' ? (state.landmark.trim() || null) : null,
-        distance_km: state.orderType === 'delivery' ? state.distanceKm : null,
-        delivery_fee: state.orderType === 'delivery' ? state.deliveryFee : 0,
-        subtotal, grand_total: total,
-        payment_method: state.paymentMethod,
-        gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef.trim() : null,
-        gcash_screenshot_url: screenshotUrl,
-        status: 'Pending'
-      }])
-      .select();
-    if (insertErr) throw insertErr;
-    const orderId = orderRows[0].id;
-
-    const itemRows = state.cart.map(c => ({
-      online_order_id: orderId,
-      item_name: c.name, category: c.category, size: c.size, variant: c.variant,
-      notes: c.notes, unit_price: c.unitPrice, quantity: c.quantity, line_total: c.lineTotal
-    }));
-    const { error: itemsErr } = await insforge.database.from('online_order_items').insert(itemRows);
-    if (itemsErr) throw itemsErr;
-
-    sendOwnerEmail(orderNumber, subtotal, total);
-    sendTelegramNotification(orderNumber, subtotal, total);
-    renderConfirmation(orderNumber, subtotal, total);
-    goToStep(7);
-  } catch (err) {
-    console.error(err);
-    alert('Sorry, something went wrong placing your order. Please try again or message us on Facebook.');
-  } finally {
-    overlay.classList.remove('show');
-    document.getElementById('nextBtn').disabled = false;
-  }
-}
-
-function sendOwnerEmail(orderNumber, subtotal, total) {
+/* ══════════════════ NOTIFICATIONS + CONFIRMATION ══════════════════ */
+function sendOwnerEmail(orderNumber, subtotal, total, paymentStatus, reference) {
   if (!window.emailjs) return;
   const itemsText = state.cart.map(c => {
     const meta = [c.size, c.variant].filter(Boolean).join(' ');
     return `- ${c.name}${meta ? ' (' + meta + ')' : ''} x${c.quantity} = ${money(c.lineTotal)}${c.notes ? ' [Note: ' + c.notes + ']' : ''}`;
   }).join('\n');
 
-  /* Field names below must match the merge tags in the EmailJS template (template_d8peb24) exactly. */
+  /* Field names below must match the merge tags in the EmailJS template (template_d8peb24) exactly.
+     gcash_reference is repurposed to carry the PayMongo reference for QR Ph orders — the
+     deployed template's field name predates this integration and can't be renamed here. */
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
     to_email: NOTIFY_EMAILS,
     order_number: orderNumber,
@@ -1185,12 +1270,13 @@ function sendOwnerEmail(orderNumber, subtotal, total) {
     items: itemsText,
     subtotal: subtotal.toFixed(2),
     grand_total: total.toFixed(2),
-    payment_method: state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup',
-    gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef : '—'
+    payment_method: state.paymentMethod === 'qrph' ? 'QR Ph' : 'Cash',
+    payment_status: paymentStatus,
+    gcash_reference: reference || '—'
   }).catch(err => console.error('EmailJS send failed:', err));
 }
 
-function sendTelegramNotification(orderNumber, subtotal, total) {
+function sendTelegramNotification(orderNumber, subtotal, total, paymentStatus, reference) {
   const itemsText = state.cart.map(c => {
     const meta = [c.size, c.variant].filter(Boolean).join(' ');
     return `- ${c.name}${meta ? ' (' + meta + ')' : ''} x${c.quantity} = ${money(c.lineTotal)}${c.notes ? ' [Note: ' + c.notes + ']' : ''}`;
@@ -1212,13 +1298,14 @@ function sendTelegramNotification(orderNumber, subtotal, total) {
       subtotal,
       delivery_fee: state.orderType === 'delivery' ? state.deliveryFee : 0,
       grand_total: total,
-      payment_method: state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup',
-      gcash_reference: state.paymentMethod === 'gcash' ? state.gcashRef : '—'
+      payment_method: state.paymentMethod === 'qrph' ? 'QR Ph' : 'Cash',
+      payment_status: paymentStatus,
+      payment_reference: reference || '—'
     })
   }).catch(err => console.error('Telegram notify failed:', err));
 }
 
-function renderConfirmation(orderNumber, subtotal, total) {
+function renderConfirmation(orderNumber, subtotal, total, paymentStatus) {
   document.getElementById('confirmOrderNum').textContent = orderNumber;
   const itemsEl = document.getElementById('confirmItems');
   itemsEl.innerHTML = state.cart.map(c => {
@@ -1238,8 +1325,10 @@ function renderConfirmation(orderNumber, subtotal, total) {
     document.getElementById('confirmAddrRow').style.display = 'flex';
     document.getElementById('confirmAddr').textContent = `${state.address}, ${state.barangay}${state.landmark ? ' (' + state.landmark + ')' : ''}`;
   }
-  document.getElementById('confirmPayment').textContent = state.paymentMethod === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup';
-  document.getElementById('confirmGcashNote').style.display = state.paymentMethod === 'gcash' ? 'block' : 'none';
+  document.getElementById('confirmPayment').textContent = state.paymentMethod === 'qrph' ? 'QR Ph' : 'Cash';
+  document.getElementById('confirmPaymentNote').textContent = paymentStatus === 'paid'
+    ? 'Payment confirmed! Your order is being prepared.'
+    : `Please prepare ${money(total)} upon delivery or pickup.`;
 }
 </script>
 </body>

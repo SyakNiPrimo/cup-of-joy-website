@@ -17,3 +17,6 @@
 .roo
 .trae
 .windsurf
+
+.vercel
+.env*

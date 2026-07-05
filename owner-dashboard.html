@@ -300,6 +300,23 @@
           <label for="oolDateFilter">Date</label>
           <input type="date" id="oolDateFilter" />
         </div>
+        <div class="field">
+          <label for="oolPaymentMethodFilter">Payment Method</label>
+          <select id="oolPaymentMethodFilter">
+            <option value="all">All</option>
+            <option value="QR Ph">QR Ph</option>
+            <option value="Cash">Cash</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="oolPaymentStatusFilter">Payment Status</label>
+          <select id="oolPaymentStatusFilter">
+            <option value="all">All</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
         <button class="btn btn-outline btn-sm" id="oolClearFilterBtn" type="button">Clear</button>
       </div>
       <div id="onlineOrdersList"><div class="loading">Loading…</div></div>
@@ -1836,12 +1853,24 @@ function itemsSummary(orderId) {
 
 function statusClass(status) { return String(status).replace(/\s+/g, '-'); }
 
+function paymentMethodLabel(pm) {
+  if (pm === 'QR Ph' || pm === 'Cash') return pm;
+  return pm === 'gcash' ? 'GCash (legacy)' : 'COD (legacy)'; // pre-PayMongo historical orders
+}
+function paymentStatusBadgeClass(status) {
+  return { paid: 'active', pending: 'edited', failed: 'voided' }[status] || 'edited';
+}
+
 function renderOnlineOrders() {
   const statusFilter = document.getElementById('oolStatusFilter').value;
   const dateFilter = document.getElementById('oolDateFilter').value;
+  const paymentMethodFilter = document.getElementById('oolPaymentMethodFilter').value;
+  const paymentStatusFilter = document.getElementById('oolPaymentStatusFilter').value;
   let list = onlineOrders;
   if (statusFilter !== 'all') list = list.filter(o => o.status === statusFilter);
   if (dateFilter) list = list.filter(o => o.scheduled_date === dateFilter);
+  if (paymentMethodFilter !== 'all') list = list.filter(o => o.payment_method === paymentMethodFilter);
+  if (paymentStatusFilter !== 'all') list = list.filter(o => o.payment_status === paymentStatusFilter);
 
   const wrap = document.getElementById('onlineOrdersList');
   if (!list.length) { wrap.innerHTML = '<div class="empty-state">No online orders found.</div>'; return; }
@@ -1858,8 +1887,13 @@ function renderOnlineOrders() {
       <div class="ool-meta">
         <span>${o.order_type === 'delivery' ? '🛵 Delivery' : '🏠 Pickup'}</span>
         <span>🕒 ${o.scheduled_date} ${escapeHtml(o.scheduled_time)}</span>
-        <span>💳 ${o.payment_method === 'gcash' ? 'GCash' : 'COD'} ${o.payment_method === 'gcash' && o.is_paid ? '<span class="paid-pill">Paid</span>' : ''}</span>
+        <span>💳 ${paymentMethodLabel(o.payment_method)} <span class="badge ${paymentStatusBadgeClass(o.payment_status)}">${escapeHtml(o.payment_status || 'pending')}</span></span>
       </div>
+      ${o.payment_method === 'QR Ph' && o.payment_status === 'paid' ? `
+        <div class="ool-meta">
+          <span>Ref: ${escapeHtml(o.paymongo_reference || '—')}</span>
+          <span>Paid: ${o.paid_at ? fmtDateTime(o.paid_at) : '—'}</span>
+        </div>` : ''}
       <div class="ool-items">${escapeHtml(itemsSummary(o.id)) || '—'}</div>
       <div class="ool-total">Total: ${money(o.grand_total)}</div>
       <div class="ool-actions">
@@ -1867,7 +1901,7 @@ function renderOnlineOrders() {
           ${OOL_STATUS_OPTIONS.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
         <button class="btn btn-outline btn-sm" data-view type="button">View</button>
-        ${o.payment_method === 'gcash' && !o.is_paid ? `<button class="btn btn-sm" data-paid type="button">Mark Paid</button>` : ''}
+        ${o.payment_method === 'Cash' && o.payment_status !== 'paid' ? `<button class="btn btn-sm" data-paid type="button">Mark Paid</button>` : ''}
         ${o.status !== 'Cancelled' && o.status !== 'Completed' ? `<button class="btn btn-red btn-sm" data-cancel type="button">Cancel</button>` : ''}
       </div>
     </div>
@@ -1883,7 +1917,7 @@ function renderOnlineOrders() {
     card.querySelector('[data-view]').addEventListener('click', () => openOnlineOrderModal(order));
     const paidBtn = card.querySelector('[data-paid]');
     if (paidBtn) paidBtn.addEventListener('click', async () => {
-      await insforge.database.from('online_orders').update({ is_paid: true }).eq('id', id);
+      await insforge.database.from('online_orders').update({ payment_status: 'paid', paid_at: new Date().toISOString() }).eq('id', id);
       await pollOnlineOrders();
     });
     const cancelBtn = card.querySelector('[data-cancel]');
@@ -1918,8 +1952,9 @@ function openOnlineOrderModal(order) {
     <div class="summary-row"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
     ${order.order_type === 'delivery' ? `<div class="summary-row"><span>Delivery Fee</span><span>${money(order.delivery_fee)}</span></div>` : ''}
     <div class="summary-row total"><span>Grand Total</span><span>${money(order.grand_total)}</span></div>
-    <div class="summary-row"><span>Payment</span><span>${order.payment_method === 'gcash' ? 'GCash' : 'Cash on Delivery/Pickup'} ${order.payment_method === 'gcash' && order.is_paid ? '<span class="paid-pill">Paid</span>' : ''}</span></div>
-    ${order.payment_method === 'gcash' ? `<div class="summary-row"><span>Reference #</span><span>${escapeHtml(order.gcash_reference || '—')}</span></div>` : ''}
+    <div class="summary-row"><span>Payment</span><span>${paymentMethodLabel(order.payment_method)} <span class="badge ${paymentStatusBadgeClass(order.payment_status)}">${escapeHtml(order.payment_status || 'pending')}</span></span></div>
+    ${order.payment_method === 'QR Ph' ? `<div class="summary-row"><span>PayMongo Reference</span><span>${escapeHtml(order.paymongo_reference || '—')}</span></div>` : ''}
+    ${order.paid_at ? `<div class="summary-row"><span>Paid At</span><span>${fmtDateTime(order.paid_at)}</span></div>` : ''}
     ${order.gcash_screenshot_url ? `<div><label>Payment Screenshot</label><img class="gcash-screenshot" src="${order.gcash_screenshot_url}" alt="GCash payment screenshot" /></div>` : ''}
     ${order.status === 'Cancelled' && order.cancelled_reason ? `<div class="summary-row"><span>Cancel Reason</span><span>${escapeHtml(order.cancelled_reason)}</span></div>` : ''}
   `;
@@ -1939,9 +1974,13 @@ document.getElementById('oolCancelConfirmBtn').addEventListener('click', async (
 
 document.getElementById('oolStatusFilter').addEventListener('change', renderOnlineOrders);
 document.getElementById('oolDateFilter').addEventListener('change', renderOnlineOrders);
+document.getElementById('oolPaymentMethodFilter').addEventListener('change', renderOnlineOrders);
+document.getElementById('oolPaymentStatusFilter').addEventListener('change', renderOnlineOrders);
 document.getElementById('oolClearFilterBtn').addEventListener('click', () => {
   document.getElementById('oolStatusFilter').value = 'all';
   document.getElementById('oolDateFilter').value = '';
+  document.getElementById('oolPaymentMethodFilter').value = 'all';
+  document.getElementById('oolPaymentStatusFilter').value = 'all';
   renderOnlineOrders();
 });
 document.getElementById('refreshOnlineOrdersBtn').addEventListener('click', pollOnlineOrders);

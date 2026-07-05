@@ -668,6 +668,15 @@ function to12h(slot) {
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, '0')} ${period}`;
 }
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]); // strip the data: URL prefix
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 dateInput.addEventListener('change', () => {
   state.date = dateInput.value || todayStr;
   state.time = null;
@@ -1082,13 +1091,30 @@ async function submitOrder() {
     if (numErr) throw numErr;
     const orderNumber = Array.isArray(orderNumData) ? orderNumData[0] : orderNumData;
 
+    // The screenshot is optional — a flaky connection (or a hiccup on the upload function)
+    // must never cost the customer their whole order. Failures here are swallowed.
+    // Uploaded via a server-side function rather than insforge.storage directly: this
+    // project's anon role has no direct storage write access (platform security hardening),
+    // so the file goes up as base64 JSON to a function that holds an elevated key.
     let screenshotUrl = null;
     if (state.paymentMethod === 'gcash' && state.gcashProofFile) {
-      const { data: uploadData, error: uploadErr } = await insforge.storage
-        .from('online-order-payments')
-        .uploadAuto(state.gcashProofFile);
-      if (uploadErr) throw uploadErr;
-      screenshotUrl = uploadData.url;
+      try {
+        const dataBase64 = await fileToBase64(state.gcashProofFile);
+        const res = await fetch(`${INSFORGE_BASE_URL}/functions/upload-payment-proof`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: state.gcashProofFile.name,
+            mimeType: state.gcashProofFile.type,
+            dataBase64
+          })
+        });
+        const uploadData = await res.json();
+        if (!res.ok) throw new Error(uploadData?.error || 'Upload failed');
+        screenshotUrl = uploadData.url;
+      } catch (uploadEx) {
+        console.error('GCash screenshot upload failed, continuing without it:', uploadEx);
+      }
     }
 
     const { data: orderRows, error: insertErr } = await insforge.database
